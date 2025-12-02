@@ -1,5 +1,6 @@
 #include "ft_irc.h"
 #include "IrcServer.hpp"
+#include "IrcException.hpp"
 
 void	usage(std::string program_name)
 {

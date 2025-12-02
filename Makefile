@@ -1,7 +1,7 @@
 NAME = ircserv
-FILES = ft_irc.cpp IrcServer.cpp IrcClient.cpp
+FILES = ft_irc.cpp IrcServer.cpp IrcClient.cpp IrcException.cpp
 SRC_FILES = $(addprefix src/, $(FILES))
-HEADERS = ft_irc.h IrcServer.hpp IrcClient.hpp
+HEADERS = ft_irc.h macro.h IrcServer.hpp IrcClient.hpp IrcException.hpp
 HEADER_FILES = $(addprefix include/, $(HEADERS))
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 CPPC = c++
