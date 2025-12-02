@@ -52,8 +52,21 @@ void	IrcServer::init(void)
 	std::cout << "IrcSever " << _server_fd << " Connected" << std::endl;
 
 	while (!IrcServer::signal) {
-		
+		int	status;
+		status = poll(&_fds[0], _fds.size(), -1);
+		if (status == -1 && !IrcServer::signal)
+			IRC_EXCEPTION(strerror(errno));
+		for (size_t i = 0; i < _fds.size(); ++i) {
+			if (_fds[i].revents & POLLIN) {
+				if (_fds[i].fd == _server_fd) {
+					// TODO: accept new connection
+				} else {
+					// TODO: receive data
+				}
+			}
+		}
 	}
+	closeFds();
 }
 
 void	IrcServer::createSocket(void)
@@ -88,4 +101,11 @@ void	IrcServer::createSocket(void)
 	new_poll.events = POLLIN;
 	new_poll.revents = 0;
 	_fds.push_back(new_poll);
+}
+
+void	IrcServer::closeFds(void)
+{
+	// TODO: close client fds
+	if (_server_fd != -1)
+		close(_server_fd);
 }

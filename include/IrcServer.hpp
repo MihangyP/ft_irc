@@ -7,7 +7,7 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <poll.h>
-//# include <unistd.h>
+# include <unistd.h>
 //# include <fcntl.h>
 # include "IrcClient.hpp"
 # include "macro.h"
@@ -34,6 +34,7 @@ class	IrcServer {
 		static void	signalHandler(int signum);
 		void		init(void);
 		void		createSocket(void);
+		void		closeFds(void);
 };
 
 #endif // __IRC_SERVER_HPP__
