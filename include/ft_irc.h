@@ -3,5 +3,6 @@
 
 # include <iostream>
 # include <cstdlib>
+# include <signal.h>
 
 #endif // __FT_IRC_HPP__

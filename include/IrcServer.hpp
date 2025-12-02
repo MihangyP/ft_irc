@@ -7,14 +7,18 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <poll.h>
+//# include <unistd.h>
+//# include <fcntl.h>
 # include "IrcClient.hpp"
 # include "macro.h"
+
 
 // TODO: search what is the appropriate BACKLOG value
 # define BACKLOG 69
 
 class	IrcServer {
 	private:
+		static bool					signal;
 		size_t						_port;
 		std::string 				_password;
 		int							_server_fd;
@@ -27,8 +31,9 @@ class	IrcServer {
 		IrcServer& operator=(const IrcServer &other);
 		~IrcServer(void);
 
-		void	init(void);
-		void	createSocket(void);
+		static void	signalHandler(int signum);
+		void		init(void);
+		void		createSocket(void);
 };
 
 #endif // __IRC_SERVER_HPP__
