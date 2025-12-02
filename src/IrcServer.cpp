@@ -39,18 +39,36 @@ IrcServer::~IrcServer(void)
 void	IrcServer::init(void)
 {
 	createSocket();
-	std::cout << "Sever " << "Connected" << std::endl;
+	std::cout << "IrcSever " << _server_fd << " Connected" << std::endl;
 }
 
 void	IrcServer::createSocket(void)
 {
-	struct sockaddr_in addr;
+	int					status;
+	struct sockaddr_in	addr;
+	struct pollfd		poll;
 	
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(_port);
 	addr.sin_addr.s_addr = INADDR_ANY;
 
 	_server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	//if (_server_fd == -1)
-		//IRC_EXCEPTION("Hello");
+	if (_server_fd == -1)
+		IRC_EXCEPTION(strerror(errno));
+	int opt = 1;
+	status = setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt);
+	if (status == -1)
+		IRC_EXCEPTION(strerror(errno));
+	// TODO: is fcntl necessary ?
+	status = bind(_server_fd, (struct sockaddr *)&addr, sizeof addr);
+	if (status == -1)
+		IRC_EXCEPTION(strerror(errno));
+	status = listen(_server_fd, BACKLOG);
+	if (status == -1)
+		IRC_EXCEPTION(strerror(errno));
+
+	poll.fd = _server_fd;
+	poll.events = POLLIN;
+	poll.revents = 0;
+	_fds.push_back(poll);
 }
