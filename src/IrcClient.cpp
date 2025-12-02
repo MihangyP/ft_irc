@@ -1,24 +1,40 @@
 #include "IrcClient.hpp"
 
-IrcClient::IrcClient()
+IrcClient::IrcClient(int fd, std::string address)
 {
-	std::cout << "IrcClient Default Constructor Called!!" << std::endl;
+	_fd = fd;
+	_address = address;
 }
 
 IrcClient::IrcClient(const IrcClient& other)
 {
-	(void)other;
-	std::cout << "IrcClient Copy Constructor Called!!" << std::endl;
+	if (this != &other) {
+		_fd = other._fd;
+		_address = other._address;
+	}
 }
 
 IrcClient& IrcClient::operator=(const IrcClient &other)
 {
-	(void)other;
-	std::cout << "IrcClient Assignment Operator Called!!" << std::endl;
+	if (this != &other) {
+		_fd = other._fd;
+		_address = other._address;
+	}
 	return (*this);
 }
 
 IrcClient::~IrcClient(void)
 {
-	std::cout << "IrcClient Destructor Called!!" << std::endl;
+	// TODO: don't forget to close fd
+	close(_fd);
+}
+
+int	IrcClient::getFd(void) const
+{
+	return (_fd);
+}
+
+std::string	IrcClient::getAddress(void) const
+{
+	return (_address);
 }

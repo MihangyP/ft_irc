@@ -6,6 +6,7 @@
 # include <exception>
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 # include <poll.h>
 # include <unistd.h>
 //# include <fcntl.h>
@@ -34,6 +35,8 @@ class	IrcServer {
 		static void	signalHandler(int signum);
 		void		init(void);
 		void		createSocket(void);
+		void		addClient(void);
+		void		readData(int fd);
 		void		closeFds(void);
 };
 

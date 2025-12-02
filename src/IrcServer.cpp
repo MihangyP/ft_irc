@@ -46,6 +46,43 @@ IrcServer::~IrcServer(void)
 	std::cout << "IrcServer Destructor Called!!" << std::endl;
 }
 
+// TODO: replace the vector of clients and fds into a map
+void	IrcServer::addClient(void)
+{
+	struct sockaddr_in	addr;
+	struct pollfd		poll;
+	int					client_fd;
+	socklen_t			addr_size = sizeof addr;
+
+	client_fd = accept(_server_fd, (struct sockaddr *)&addr, &addr_size);
+	if (client_fd == -1)
+		IRC_EXCEPTION(strerror(errno));
+	poll.fd = client_fd;
+	poll.events = POLLIN;
+	poll.revents = 0;
+
+	std::string client_address = inet_ntoa(addr.sin_addr);
+
+	IrcClient	client(client_fd, client_address);
+	_clients.push_back(client);
+	_fds.push_back(poll);
+}
+
+void	IrcServer::readData(int fd)
+{
+	char	message[1024];
+	memset(message, 0, sizeof message);
+
+	ssize_t	bytes_read = recv(fd, message, sizeof message - 1, 0);
+	if (bytes_read > 0) {
+		message[bytes_read] = '\0';
+		std::cout << "Client " << fd << ", Data: " << message << std::endl;
+	} else {
+		// TODO: close fds
+		std::cout << "Client " << fd << "disconnected" << std::endl;
+	}
+}
+
 void	IrcServer::init(void)
 {
 	createSocket();
@@ -59,9 +96,9 @@ void	IrcServer::init(void)
 		for (size_t i = 0; i < _fds.size(); ++i) {
 			if (_fds[i].revents & POLLIN) {
 				if (_fds[i].fd == _server_fd) {
-					// TODO: accept new connection
+					addClient();
 				} else {
-					// TODO: receive data
+					readData(_fds[i].fd);
 				}
 			}
 		}
