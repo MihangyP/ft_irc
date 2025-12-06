@@ -41,6 +41,9 @@ class	IrcServer {
 		void		addClient(void);
 		void		readData(int fd);
 		void		closeFds(void);
+
+
+		void	parse_received_data(std::string message);
 };
 
 #endif // __IRC_SERVER_HPP__

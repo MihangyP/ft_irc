@@ -68,22 +68,50 @@ void	IrcServer::addClient(void)
 	_fds.push_back(poll);
 }
 
-void	parse_received_data(std::string message)
+void	IrcServer::parse_received_data(std::string message)
 {
 	Command	cmd;
+	std::string	valid_command_names[] = {
+		"PASS"
+	};
+	size_t valid_command_names_size = sizeof(valid_command_names) / sizeof(valid_command_names[0]);
 
 	StringHelper	tmp(message);
 	std::vector<std::string>	tokens = tmp.trim().splitBySpace();
 
-	cmd.setCommandName(tokens[0]);
+	bool	found = false;
+	for (size_t i = 0; i < valid_command_names_size; ++i) {
+		if (tokens[i] == valid_command_names[i]) {
+			found = true;
+			break ;
+		}
+	}
+	if (found) {
+		cmd.setCommandName(tokens[0]);
+	} else {
+		std::cout << "Invalid command name" << std::endl;
+	}
 	cmd.setArguments(tokens.begin() + 1, tokens.end());
 
-	std::cout << "cmd_name: " << cmd.getCommandName() << std::endl;
-	std::vector<std::string>	arguments = cmd.getArguments();
-	std::cout << "_arguments: " << std::endl;
-	for (size_t i = 0; i < arguments.size(); ++i) {
-		std::cout << arguments[i] << std::endl;
+	if (cmd.getCommandName() == "PASS") {
+		std::vector<std::string> arguments = cmd.getArguments();
+		if (arguments.size() != 1) {
+			std::cout << "Invalid PASS command argument" << std::endl;
+		}
+		if (arguments[0] != _password) {
+			std::cout << "Invalid password" << std::endl;
+		}
 	}
+
+	// TODO: check error for each command
+
+	//std::cout << "cmd_name: " << cmd.getCommandName() << std::endl;
+	//std::vector<std::string>	arguments = cmd.getArguments();
+	//std::cout << "_arguments: " << std::endl;
+	//for (size_t i = 0; i < arguments.size(); ++i) {
+		//std::cout << arguments[i] << std::endl;
+	//}
+	
 }
 
 void	IrcServer::readData(int fd)
