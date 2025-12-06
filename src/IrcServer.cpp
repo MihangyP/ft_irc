@@ -71,6 +71,19 @@ void	IrcServer::addClient(void)
 void	parse_received_data(std::string message)
 {
 	Command	cmd;
+
+	StringHelper	tmp(message);
+	std::vector<std::string>	tokens = tmp.trim().splitBySpace();
+
+	cmd.setCommandName(tokens[0]);
+	cmd.setArguments(tokens.begin() + 1, tokens.end());
+
+	std::cout << "cmd_name: " << cmd.getCommandName() << std::endl;
+	std::vector<std::string>	arguments = cmd.getArguments();
+	std::cout << "_arguments: " << std::endl;
+	for (size_t i = 0; i < arguments.size(); ++i) {
+		std::cout << arguments[i] << std::endl;
+	}
 }
 
 void	IrcServer::readData(int fd)

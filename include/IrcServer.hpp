@@ -12,6 +12,7 @@
 //# include <fcntl.h>
 # include "IrcClient.hpp"
 # include "Command.hpp"
+# include "StringHelper.hpp"
 # include "macro.h"
 
 
