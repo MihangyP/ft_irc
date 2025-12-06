@@ -80,7 +80,7 @@ bool	IrcServer::tryToAuthenticate(void)
 	if (_authentification_cmds[0].getCommandName() == "PASS" && 
 		_authentification_cmds[1].getCommandName() == "NICK" &&
 		_authentification_cmds[2].getCommandName() == "USER") {
-		_authentification_cmds.clear();
+		//_authentification_cmds.clear();
 		return (true);	
 	}
 	_authentification_cmds.clear();
@@ -127,9 +127,13 @@ void	IrcServer::parseReceivedData(std::string message, int fd)
 		}
 
 		if (_client_try_to_authenticate) {
+			std::cout << "TRY TO AUTHENTICATE" << std::endl;
 			std::vector<std::string> arguments = _authentification_cmds[0].getArguments();
 			if (arguments[0] == _password) { // if the password is correct
 				_clients[i].setIsConnected(true);
+				std::cout << "Client " << _clients[i].getFd() << " Connected!" << std::endl;
+			} else {
+				std::cout << "invalid password" << std::endl;
 			}
 			if (_clients[i].isConnected()) {
 				_client_try_to_authenticate = false;
