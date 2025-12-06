@@ -51,9 +51,10 @@ void	IrcServer::addClient(void)
 bool	IrcServer::tryToAuthenticate(int client_index)
 {
 	// NOTE: should we follow this order ?
-	if (_authentification_cmds[0].getCommandName() == "PASS" && 
-		_authentification_cmds[1].getCommandName() == "NICK" &&
-		_authentification_cmds[2].getCommandName() == "USER") {
+	std::vector<Command>	auth_buf = _clients[client_index].getAuthBuf();
+	if (auth_buf[0].getCommandName() == "PASS" && 
+		auth_buf[1].getCommandName() == "NICK" &&
+		auth_buf[2].getCommandName() == "USER") {
 		return (true);	
 	}
 	_clients[client_index].clearAuthBuf();
@@ -103,6 +104,7 @@ void	IrcServer::parseReceivedData(std::string message, int fd)
 		_clients[i].pushIntoAuthBuf(cmd);
 		std::vector<Command>	auth_buf = _clients[i].getAuthBuf();
 		if (auth_buf.size() == 3) {
+			std::cout << "YOO\n";
 			if (tryToAuthenticate(i)) {
 				_clients[i].setAuthenticated(true);
 			}
