@@ -4,6 +4,7 @@ IrcClient::IrcClient(int fd, std::string address)
 {
 	_fd = fd;
 	_address = address;
+	_is_connected = false;
 }
 
 IrcClient::IrcClient(const IrcClient& other)
@@ -37,4 +38,14 @@ int	IrcClient::getFd(void) const
 std::string	IrcClient::getAddress(void) const
 {
 	return (_address);
+}
+
+bool	IrcClient::isConnected(void) const
+{
+	return (_is_connected);
+}
+
+void		IrcClient::setIsConnected(bool status)
+{
+	_is_connected = status;
 }

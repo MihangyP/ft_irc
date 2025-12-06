@@ -28,6 +28,8 @@ class	IrcServer {
 		int							_server_fd;
 		std::vector<IrcClient>		_clients;
 		std::vector<struct pollfd>	_fds;
+		std::vector<Command>		_authentification_cmds;
+		bool						_client_try_to_authenticate;
 
 	public:
 		IrcServer(size_t port, std::string password);
@@ -41,9 +43,8 @@ class	IrcServer {
 		void		addClient(void);
 		void		readData(int fd);
 		void		closeFds(void);
-
-
-		void	parse_received_data(std::string message);
+		void		parseReceivedData(std::string message, int fd);
+		bool		tryToAuthenticate(void);	
 };
 
 #endif // __IRC_SERVER_HPP__

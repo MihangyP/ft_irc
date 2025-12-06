@@ -16,6 +16,7 @@ IrcServer::IrcServer(size_t port, std::string password)
 	_server_fd = -1;
 	_port = port;
 	_password = password;
+	_client_try_to_authenticate = false;
 	std::cout << "port: " << _port << std::endl;
 	std::cout << "password: " << _password << std::endl;
 }
@@ -27,6 +28,9 @@ IrcServer::IrcServer(const IrcServer& other)
 		_server_fd = other._server_fd;
 		_port = other._port;
 		_password = other._password;
+		_clients = other._clients;
+		_fds = other._fds;
+		_authentification_cmds = other._authentification_cmds;
 	}
 }
 
@@ -37,6 +41,9 @@ IrcServer& IrcServer::operator=(const IrcServer &other)
 		_server_fd = other._server_fd;
 		_port = other._port;
 		_password = other._password;
+		_clients = other._clients;
+		_fds = other._fds;
+		_authentification_cmds = other._authentification_cmds;
 	}
 	return (*this);
 }
@@ -68,11 +75,25 @@ void	IrcServer::addClient(void)
 	_fds.push_back(poll);
 }
 
-void	IrcServer::parse_received_data(std::string message)
+bool	IrcServer::tryToAuthenticate(void)
+{
+	if (_authentification_cmds[0].getCommandName() == "PASS" && 
+		_authentification_cmds[1].getCommandName() == "NICK" &&
+		_authentification_cmds[2].getCommandName() == "USER") {
+		_authentification_cmds.clear();
+		return (true);	
+	}
+	_authentification_cmds.clear();
+	return (false);
+}
+
+void	IrcServer::parseReceivedData(std::string message, int fd)
 {
 	Command	cmd;
 	std::string	valid_command_names[] = {
-		"PASS"
+		"PASS",
+		"NICK",
+		"USER",
 	};
 	size_t valid_command_names_size = sizeof(valid_command_names) / sizeof(valid_command_names[0]);
 
@@ -81,29 +102,40 @@ void	IrcServer::parse_received_data(std::string message)
 
 	bool	found = false;
 	for (size_t i = 0; i < valid_command_names_size; ++i) {
-		if (tokens[i] == valid_command_names[i]) {
+		if (tokens[0] == valid_command_names[i]) {
 			found = true;
 			break ;
 		}
 	}
+
 	if (found) {
 		cmd.setCommandName(tokens[0]);
 	} else {
 		std::cout << "Invalid command name" << std::endl;
 	}
 	cmd.setArguments(tokens.begin() + 1, tokens.end());
-
-	if (cmd.getCommandName() == "PASS") {
-		std::vector<std::string> arguments = cmd.getArguments();
-		if (arguments.size() != 1) {
-			std::cout << "Invalid PASS command argument" << std::endl;
+	// TODO: check error for each command
+	size_t i = 0;
+	for (; i < _clients.size(); ++i) {
+		if (_clients[i].getFd() == fd)
+			break ;
+	}
+	if (!_clients[i].isConnected()) {
+		_authentification_cmds.push_back(cmd);
+		if (_authentification_cmds.size() == 3) {
+			_client_try_to_authenticate = tryToAuthenticate();
 		}
-		if (arguments[0] != _password) {
-			std::cout << "Invalid password" << std::endl;
+
+		if (_client_try_to_authenticate) {
+			std::vector<std::string> arguments = _authentification_cmds[0].getArguments();
+			if (arguments[0] == _password) { // if the password is correct
+				_clients[i].setIsConnected(true);
+			}
+			if (_clients[i].isConnected()) {
+				_client_try_to_authenticate = false;
+			}
 		}
 	}
-
-	// TODO: check error for each command
 
 	//std::cout << "cmd_name: " << cmd.getCommandName() << std::endl;
 	//std::vector<std::string>	arguments = cmd.getArguments();
@@ -125,9 +157,8 @@ void	IrcServer::readData(int fd)
 	if (bytes_read > 0) {
 		message[bytes_read] = '\0';
 		std::cout << "Client " << fd << ", Data: " << message << std::endl;
-		parse_received_data(message);
+		parseReceivedData(message, fd);
 	} else {
-		//TODO: should I clearClients
 		for (size_t i = 0; i < _clients.size(); ++i) {
 			if (_clients[i].getFd() == fd) {
 				_clients.erase(_clients.begin() + i);
@@ -143,7 +174,6 @@ void	IrcServer::readData(int fd)
 		close(fd);
 		std::cout << "Client " << fd << " disconnected" << std::endl;
 	}
-	
 }
 
 void	IrcServer::init(void)
