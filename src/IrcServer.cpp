@@ -78,7 +78,20 @@ void	IrcServer::readData(int fd)
 		message[bytes_read] = '\0';
 		std::cout << "Client " << fd << ", Data: " << message << std::endl;
 	} else {
-		 //TODO: close fds
+		//TODO: should I clearClients
+		for (size_t i = 0; i < _clients.size(); ++i) {
+			if (_clients[i].getFd() == fd) {
+				_clients.erase(_clients.begin() + i);
+				break ;
+			}
+		}
+		for (size_t i = 0; i < _fds.size(); ++i) {
+			if (_fds[i].fd == fd) {
+				_fds.erase(_fds.begin() + i);
+				break ;
+			}
+		}
+		close(fd);
 		std::cout << "Client " << fd << "disconnected" << std::endl;
 	}
 	
@@ -143,7 +156,10 @@ void	IrcServer::createSocket(void)
 
 void	IrcServer::closeFds(void)
 {
-	// TODO: close client fds
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		int	client_fd = _clients[i].getFd();
+		close(client_fd);
+	}
 	if (_server_fd != -1)
 		close(_server_fd);
 }
