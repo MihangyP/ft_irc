@@ -11,10 +11,12 @@
 # include <unistd.h>
 //# include <fcntl.h>
 # include "IrcClient.hpp"
+# include "Command.hpp"
 # include "macro.h"
 
 
 // TODO: search what is the appropriate BACKLOG value
+// TODO: make Client just a struct (class suckssss)
 # define BACKLOG 69
 
 class	IrcServer {

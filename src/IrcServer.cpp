@@ -68,15 +68,23 @@ void	IrcServer::addClient(void)
 	_fds.push_back(poll);
 }
 
+void	parse_received_data(std::string message)
+{
+	Command	cmd;
+}
+
 void	IrcServer::readData(int fd)
 {
-	char	message[1024];
+	// TODO : make this dynamic ?
+	# define MAX_MESSAGE_SIZE 1024
+	char	message[MAX_MESSAGE_SIZE];
 	memset(message, 0, sizeof message);
 
 	ssize_t	bytes_read = recv(fd, message, sizeof message - 1, 0);
 	if (bytes_read > 0) {
 		message[bytes_read] = '\0';
 		std::cout << "Client " << fd << ", Data: " << message << std::endl;
+		parse_received_data(message);
 	} else {
 		//TODO: should I clearClients
 		for (size_t i = 0; i < _clients.size(); ++i) {
@@ -92,7 +100,7 @@ void	IrcServer::readData(int fd)
 			}
 		}
 		close(fd);
-		std::cout << "Client " << fd << "disconnected" << std::endl;
+		std::cout << "Client " << fd << " disconnected" << std::endl;
 	}
 	
 }
@@ -102,6 +110,7 @@ void	IrcServer::init(void)
 	createSocket();
 	std::cout << "IrcSever " << _server_fd << " Connected" << std::endl;
 
+	// event loop
 	while (!IrcServer::signal) {
 		int	status;
 		status = poll(&_fds[0], _fds.size(), -1);
