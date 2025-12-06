@@ -9,7 +9,7 @@
 # include <arpa/inet.h>
 # include <poll.h>
 # include <unistd.h>
-//# include <fcntl.h>
+# include <fcntl.h>
 # include "IrcClient.hpp"
 # include "Command.hpp"
 # include "StringHelper.hpp"
@@ -33,8 +33,6 @@ class	IrcServer {
 
 	public:
 		IrcServer(size_t port, std::string password);
-		IrcServer(const IrcServer& other);
-		IrcServer& operator=(const IrcServer &other);
 		~IrcServer(void);
 
 		static void	signalHandler(int signum);
@@ -44,7 +42,7 @@ class	IrcServer {
 		void		readData(int fd);
 		void		closeFds(void);
 		void		parseReceivedData(std::string message, int fd);
-		bool		tryToAuthenticate(void);	
+		bool		tryToAuthenticate(int client_index);
 };
 
 #endif // __IRC_SERVER_HPP__

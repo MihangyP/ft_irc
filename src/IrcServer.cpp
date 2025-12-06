@@ -21,33 +21,6 @@ IrcServer::IrcServer(size_t port, std::string password)
 	std::cout << "password: " << _password << std::endl;
 }
 
-IrcServer::IrcServer(const IrcServer& other)
-{
-	std::cout << "IrcServer Copy Constructor Called!!" << std::endl;
-	if (this != &other) {
-		_server_fd = other._server_fd;
-		_port = other._port;
-		_password = other._password;
-		_clients = other._clients;
-		_fds = other._fds;
-		_authentification_cmds = other._authentification_cmds;
-	}
-}
-
-IrcServer& IrcServer::operator=(const IrcServer &other)
-{
-	std::cout << "IrcServer Assignment Operator Called!!" << std::endl;
-	if (this != &other) {
-		_server_fd = other._server_fd;
-		_port = other._port;
-		_password = other._password;
-		_clients = other._clients;
-		_fds = other._fds;
-		_authentification_cmds = other._authentification_cmds;
-	}
-	return (*this);
-}
-
 IrcServer::~IrcServer(void)
 {
 	std::cout << "IrcServer Destructor Called!!" << std::endl;
@@ -75,20 +48,31 @@ void	IrcServer::addClient(void)
 	_fds.push_back(poll);
 }
 
-bool	IrcServer::tryToAuthenticate(void)
+bool	IrcServer::tryToAuthenticate(int client_index)
 {
+	// NOTE: should we follow this order ?
 	if (_authentification_cmds[0].getCommandName() == "PASS" && 
 		_authentification_cmds[1].getCommandName() == "NICK" &&
 		_authentification_cmds[2].getCommandName() == "USER") {
-		//_authentification_cmds.clear();
 		return (true);	
 	}
-	_authentification_cmds.clear();
+	_clients[client_index].clearAuthBuf();
 	return (false);
 }
 
 void	IrcServer::parseReceivedData(std::string message, int fd)
 {
+	// Get the actual client corresponding to fd
+	// i is the corresponding client index in _clients
+	size_t i = 0;
+	for (; i < _clients.size(); ++i) {
+		if (_clients[i].getFd() == fd)
+			break ;
+	}
+	if (i == _clients.size())
+		return ;
+	//
+
 	Command	cmd;
 	std::string	valid_command_names[] = {
 		"PASS",
@@ -115,20 +99,21 @@ void	IrcServer::parseReceivedData(std::string message, int fd)
 	}
 	cmd.setArguments(tokens.begin() + 1, tokens.end());
 	// TODO: check error for each command
-	size_t i = 0;
-	for (; i < _clients.size(); ++i) {
-		if (_clients[i].getFd() == fd)
-			break ;
-	}
 	if (!_clients[i].isConnected()) {
-		_authentification_cmds.push_back(cmd);
-		if (_authentification_cmds.size() == 3) {
-			_client_try_to_authenticate = tryToAuthenticate();
+		_clients[i].pushIntoAuthBuf(cmd);
+		std::vector<Command>	auth_buf = _clients[i].getAuthBuf();
+		if (auth_buf.size() == 3) {
+			if (tryToAuthenticate(i)) {
+				_clients[i].setAuthenticated(true);
+			}
 		}
 
-		if (_client_try_to_authenticate) {
+		if (_clients[i].isAuthenticated()) {
 			std::cout << "TRY TO AUTHENTICATE" << std::endl;
-			std::vector<std::string> arguments = _authentification_cmds[0].getArguments();
+			std::vector<Command>	auth_buf = _clients[i].getAuthBuf();
+			std::vector<std::string> arguments = auth_buf[0].getArguments();
+			if (arguments.empty())
+				return ;
 			if (arguments[0] == _password) { // if the password is correct
 				_clients[i].setIsConnected(true);
 				std::cout << "Client " << _clients[i].getFd() << " Connected!" << std::endl;
@@ -136,7 +121,7 @@ void	IrcServer::parseReceivedData(std::string message, int fd)
 				std::cout << "invalid password" << std::endl;
 			}
 			if (_clients[i].isConnected()) {
-				_client_try_to_authenticate = false;
+				_clients[i].setAuthenticated(false);
 			}
 		}
 	}
@@ -147,7 +132,6 @@ void	IrcServer::parseReceivedData(std::string message, int fd)
 	//for (size_t i = 0; i < arguments.size(); ++i) {
 		//std::cout << arguments[i] << std::endl;
 	//}
-	
 }
 
 void	IrcServer::readData(int fd)
@@ -222,9 +206,9 @@ void	IrcServer::createSocket(void)
 	if (status == -1)
 		IRC_EXCEPTION(strerror(errno));
 	// TODO: is fcntl necessary ?
-	//status = fcntl(_server_fd, F_SETFL, O_NONBLOCK);
-	//if (status == -1)
-		//IRC_EXCEPTION(strerror(errno));
+	status = fcntl(_server_fd, F_SETFL, O_NONBLOCK);
+	if (status == -1)
+		IRC_EXCEPTION(strerror(errno));
 	status = bind(_server_fd, (struct sockaddr *)&addr, sizeof addr);
 	if (status == -1)
 		IRC_EXCEPTION(strerror(errno));
