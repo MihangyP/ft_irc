@@ -26,7 +26,7 @@ IrcClient& IrcClient::operator=(const IrcClient &other)
 IrcClient::~IrcClient(void)
 {
 	// TODO: don't forget to close fd
-	close(_fd);
+	//	close(_fd);
 }
 
 int	IrcClient::getFd(void) const

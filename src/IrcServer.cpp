@@ -78,9 +78,10 @@ void	IrcServer::readData(int fd)
 		message[bytes_read] = '\0';
 		std::cout << "Client " << fd << ", Data: " << message << std::endl;
 	} else {
-		// TODO: close fds
+		 //TODO: close fds
 		std::cout << "Client " << fd << "disconnected" << std::endl;
 	}
+	
 }
 
 void	IrcServer::init(void)
