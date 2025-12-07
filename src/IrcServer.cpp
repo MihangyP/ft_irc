@@ -4,26 +4,24 @@ bool IrcServer::signal = false;
 
 void	IrcServer::signalHandler(int signum)
 {
-	(void)signum;
 	std::cout << std::endl;
-	std::cout << "signal received!!!!!" << std::endl;
+	IrcLog::info("receive signal %i", signum);
 	IrcServer::signal = true;
 }
 
 IrcServer::IrcServer(size_t port, std::string password)
 {
-	std::cout << "IrcServer Default Constructor Called!!" << std::endl;
 	_server_fd = -1;
 	_port = port;
 	_password = password;
 	_client_try_to_authenticate = false;
-	std::cout << "port: " << _port << std::endl;
-	std::cout << "password: " << _password << std::endl;
+	IrcLog::info("port = %i", _port);
+	IrcLog::info("password = %s", _password.c_str());
 }
 
 IrcServer::~IrcServer(void)
 {
-	std::cout << "IrcServer Destructor Called!!" << std::endl;
+
 }
 
 // TODO: replace the vector of clients and fds into a map
@@ -79,11 +77,15 @@ void	IrcServer::parseReceivedData(std::string message, int fd)
 		"PASS",
 		"NICK",
 		"USER",
+		"CAP"
 	};
 	size_t valid_command_names_size = sizeof(valid_command_names) / sizeof(valid_command_names[0]);
 
 	StringHelper	tmp(message);
 	std::vector<std::string>	tokens = tmp.trim().splitBySpace();
+	if (tokens.empty()) {
+		return ;
+	}
 
 	bool	found = false;
 	for (size_t i = 0; i < valid_command_names_size; ++i) {
@@ -96,7 +98,7 @@ void	IrcServer::parseReceivedData(std::string message, int fd)
 	if (found) {
 		cmd.setCommandName(tokens[0]);
 	} else {
-		std::cout << "Invalid command name" << std::endl;
+		IrcLog::warn("%s: invalid command name", tokens[0].c_str());
 	}
 	cmd.setArguments(tokens.begin() + 1, tokens.end());
 	// TODO: check error for each command
@@ -136,10 +138,30 @@ void	IrcServer::parseReceivedData(std::string message, int fd)
 	//}
 }
 
+void sendMessage(IrcClient client, const std::string& message)
+{
+	send(client.getFd(), message.c_str(), message.size(), 0);
+}
+
+void	IrcServer::disconnectClient(int fd)
+{
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i].getFd() == fd) {
+			_clients.erase(_clients.begin() + i);
+			break ;
+		}
+	}
+	for (size_t i = 0; i < _fds.size(); ++i) {
+		if (_fds[i].fd == fd) {
+			_fds.erase(_fds.begin() + i);
+			break ;
+		}
+	}
+	close(fd);
+}
+
 void	IrcServer::readData(int fd)
 {
-	// TODO : make this dynamic ?
-	# define MAX_MESSAGE_SIZE 1024
 	char	message[MAX_MESSAGE_SIZE];
 	memset(message, 0, sizeof message);
 
@@ -149,33 +171,21 @@ void	IrcServer::readData(int fd)
 		std::cout << "Client " << fd << ", Data: " << message << std::endl;
 		parseReceivedData(message, fd);
 	} else {
-		for (size_t i = 0; i < _clients.size(); ++i) {
-			if (_clients[i].getFd() == fd) {
-				_clients.erase(_clients.begin() + i);
-				break ;
-			}
-		}
-		for (size_t i = 0; i < _fds.size(); ++i) {
-			if (_fds[i].fd == fd) {
-				_fds.erase(_fds.begin() + i);
-				break ;
-			}
-		}
-		close(fd);
-		std::cout << "Client " << fd << " disconnected" << std::endl;
+		disconnectClient(fd);
+		IrcLog::info("Client [%i] disconnected", fd);
 	}
 }
 
 void	IrcServer::init(void)
 {
 	createSocket();
-	std::cout << "IrcSever " << _server_fd << " Connected" << std::endl;
+	IrcLog::info("IrcServer [%i] connected", _server_fd);
 
 	// event loop
 	while (!IrcServer::signal) {
 		int	status;
 		status = poll(&_fds[0], _fds.size(), -1);
-		if (status == -1 && !IrcServer::signal)
+		if (status == -1 && !IrcServer::signal) // TODO: or just continue ?
 			IRC_EXCEPTION(strerror(errno));
 		for (size_t i = 0; i < _fds.size(); ++i) {
 			if (_fds[i].revents & POLLIN) {

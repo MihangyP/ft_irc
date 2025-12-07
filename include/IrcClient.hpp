@@ -12,6 +12,8 @@ class	IrcClient {
 		bool					_is_connected;
 		bool					_authenticated;
 		std::vector<Command>	_auth_buf;
+		std::string				_nickname;
+		std::string				_username;
 
 	public:
 		IrcClient(int fd, std::string address);
@@ -22,7 +24,11 @@ class	IrcClient {
 		bool					isConnected(void) const;
 		bool					isAuthenticated(void) const;
 		std::vector<Command>	getAuthBuf(void) const;
+		std::string				getNickName(void) const;
+		std::string				getUserName(void) const;
 
+		void		setNickName(std::string nickname);
+		void		setUserName(std::string username);
 		void		setIsConnected(bool status);
 		void		setAuthenticated(bool status);
 		void		pushIntoAuthBuf(Command cmd);

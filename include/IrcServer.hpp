@@ -16,6 +16,8 @@
 # include "IrcLog.hpp"
 # include "macro.h"
 
+# define MAX_MESSAGE_SIZE 1024
+
 
 // TODO: search what is the appropriate BACKLOG value
 // TODO: make Client just a struct (class suckssss)
@@ -44,6 +46,7 @@ class	IrcServer {
 		void		closeFds(void);
 		void		parseReceivedData(std::string message, int fd);
 		bool		tryToAuthenticate(int client_index);
+		void		disconnectClient(int fd);
 };
 
 #endif // __IRC_SERVER_HPP__

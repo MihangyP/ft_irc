@@ -6,6 +6,8 @@ IrcClient::IrcClient(int fd, std::string address)
 	_address = address;
 	_is_connected = false;
 	_authenticated = false;
+	_nickname = "";
+	_username = "";
 }
 
 IrcClient::~IrcClient(void)
@@ -56,4 +58,24 @@ void		IrcClient::pushIntoAuthBuf(Command cmd)
 void		IrcClient::clearAuthBuf(void)
 {
 	_auth_buf.clear();
+}
+
+void		IrcClient::setNickName(std::string nickname)
+{
+	_nickname = nickname;
+}
+
+void		IrcClient::setUserName(std::string username)
+{
+	_username = username;
+}
+
+std::string	IrcClient::getNickName(void) const
+{
+	return (_nickname);
+}
+
+std::string	IrcClient::getUserName(void) const
+{
+	return (_nickname);
 }
