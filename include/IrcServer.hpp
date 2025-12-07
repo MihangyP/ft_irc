@@ -13,6 +13,7 @@
 # include "IrcClient.hpp"
 # include "Command.hpp"
 # include "StringHelper.hpp"
+# include "IrcLog.hpp"
 # include "macro.h"
 
 
