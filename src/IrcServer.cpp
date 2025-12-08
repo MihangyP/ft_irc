@@ -76,6 +76,9 @@ void	IrcServer::tryToRegister(int client_index)
 		_clients[client_index].getNickName() != "" &&
 		_clients[client_index].getUserName() != "") {
 		_clients[client_index].registered = true;
+		std::string response = ":ft_irc 001 " + _clients[client_index].getNickName() + " :Welcome to FT_IRC!\r\n";
+		//sendMessage(_clients[client_index], "001 Welcome to FT_IRC\r\n");
+		sendMessage(_clients[client_index], response);
 		IrcLog::info("Client %i registered as %s (username: %s)", _clients[client_index].getFd(),
 				_clients[client_index].getNickName().c_str(),
 				_clients[client_index].getUserName().c_str());
@@ -102,7 +105,8 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 		if (arguments[0] == _password) {
 			_clients[client_index].authenticated = true;
 		} else {
-			IrcLog::error("Invalid password: %s", arguments[0].c_str());
+			std::string response = ":ft_irc 464 " + _clients[client_index].getNickName() + " :Password incorrect!\r\n";
+			sendMessage(_clients[client_index], response);
 			disconnectClient(_clients[client_index].getFd());	
 		}
 	} else if (command_name == "NICK") {
