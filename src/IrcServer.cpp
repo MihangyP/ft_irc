@@ -178,16 +178,18 @@ void	IrcServer::readData(int fd)
 				break ;
 		}
 		_clients[i].input_buffer.append(message);
-		
 		size_t pos = _clients[i].input_buffer.find("\n");
 		while (pos != std::string::npos) {
 			std::string line = _clients[i].input_buffer.substr(0, pos);
 			if (!line.empty() && line[line.size() - 1] == '\r')
 				line.erase(line.end() - 1);
 			_clients[i].input_buffer.erase(0, pos + 1);
+			// Parsing
+			Command	cmd;
+			cmd.setCommandName(line);
+			_authentification_cmds.push_back(cmd);
 			pos = _clients[i].input_buffer.find("\n");
 		}
-		IrcLog::debug("Message: %s", _clients[i].input_buffer.c_str());
 		//parseReceivedData(message, fd);
 	} else {
 		disconnectClient(fd);
