@@ -35,6 +35,9 @@ void	IrcServer::addClient(void)
 	client_fd = accept(_server_fd, (struct sockaddr *)&addr, &addr_size);
 	if (client_fd == -1)
 		IRC_EXCEPTION(strerror(errno));
+	int status = fcntl(client_fd, F_SETFL, O_NONBLOCK);
+	if (status == -1)
+		IRC_EXCEPTION(strerror(errno));
 	poll.fd = client_fd;
 	poll.events = POLLIN;
 	poll.revents = 0;
@@ -169,7 +172,7 @@ void	IrcServer::readData(int fd)
 	if (bytes_read > 0) {
 		message[bytes_read] = '\0';
 		std::cout << "Client " << fd << ", Data: " << message << std::endl;
-		parseReceivedData(message, fd);
+		//parseReceivedData(message, fd);
 	} else {
 		disconnectClient(fd);
 		IrcLog::info("Client [%i] disconnected", fd);
@@ -217,7 +220,7 @@ void	IrcServer::createSocket(void)
 	status = setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt);
 	if (status == -1)
 		IRC_EXCEPTION(strerror(errno));
-	// TODO: is fcntl necessary ?
+	// TODO: is fcntl necessary ? // it suppose to make the fd no-bloquing
 	status = fcntl(_server_fd, F_SETFL, O_NONBLOCK);
 	if (status == -1)
 		IRC_EXCEPTION(strerror(errno));
