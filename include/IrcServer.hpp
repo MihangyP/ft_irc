@@ -14,6 +14,7 @@
 # include "Command.hpp"
 # include "StringHelper.hpp"
 # include "IrcLog.hpp"
+# include "ParseCommand.hpp"
 # include "macro.h"
 
 # define MAX_MESSAGE_SIZE 1024
@@ -31,8 +32,6 @@ class	IrcServer {
 		int							_server_fd;
 		std::vector<IrcClient>		_clients;
 		std::vector<struct pollfd>	_fds;
-		std::vector<Command>		_authentification_cmds;
-		bool						_client_try_to_authenticate;
 
 	public:
 		IrcServer(size_t port, std::string password);
@@ -45,8 +44,9 @@ class	IrcServer {
 		void		readData(int fd);
 		void		closeFds(void);
 		void		parseReceivedData(std::string message, int fd);
-		bool		tryToAuthenticate(int client_index);
 		void		disconnectClient(int fd);
+		void		parseCommand(std::string line, int client_index);
+		void		tryToRegister(int client_index);
 };
 
 #endif // __IRC_SERVER_HPP__

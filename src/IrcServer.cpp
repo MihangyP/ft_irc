@@ -14,7 +14,6 @@ IrcServer::IrcServer(size_t port, std::string password)
 	_server_fd = -1;
 	_port = port;
 	_password = password;
-	_client_try_to_authenticate = false;
 	IrcLog::info("port = %i", _port);
 	IrcLog::info("password = %s", _password.c_str());
 }
@@ -49,98 +48,6 @@ void	IrcServer::addClient(void)
 	_fds.push_back(poll);
 }
 
-bool	IrcServer::tryToAuthenticate(int client_index)
-{
-	// NOTE: should we follow this order ?
-	std::vector<Command>	auth_buf = _clients[client_index].getAuthBuf();
-	if (auth_buf[0].getCommandName() == "PASS" && 
-		auth_buf[1].getCommandName() == "NICK" &&
-		auth_buf[2].getCommandName() == "USER") {
-		return (true);	
-	}
-	_clients[client_index].clearAuthBuf();
-	return (false);
-}
-
-void	IrcServer::parseReceivedData(std::string message, int fd)
-{
-	// Get the actual client corresponding to fd
-	// i is the corresponding client index in _clients
-	size_t i = 0;
-	for (; i < _clients.size(); ++i) {
-		if (_clients[i].getFd() == fd)
-			break ;
-	}
-	if (i == _clients.size())
-		return ;
-	//
-
-	Command	cmd;
-	std::string	valid_command_names[] = {
-		"PASS",
-		"NICK",
-		"USER",
-		"CAP"
-	};
-	size_t valid_command_names_size = sizeof(valid_command_names) / sizeof(valid_command_names[0]);
-
-	StringHelper	tmp(message);
-	std::vector<std::string>	tokens = tmp.trim().splitBySpace();
-	if (tokens.empty()) {
-		return ;
-	}
-
-	bool	found = false;
-	for (size_t i = 0; i < valid_command_names_size; ++i) {
-		if (tokens[0] == valid_command_names[i]) {
-			found = true;
-			break ;
-		}
-	}
-
-	if (found) {
-		cmd.setCommandName(tokens[0]);
-	} else {
-		IrcLog::warn("%s: invalid command name", tokens[0].c_str());
-	}
-	cmd.setArguments(tokens.begin() + 1, tokens.end());
-	// TODO: check error for each command
-	if (!_clients[i].isConnected()) {
-		_clients[i].pushIntoAuthBuf(cmd);
-		std::vector<Command>	auth_buf = _clients[i].getAuthBuf();
-		if (auth_buf.size() == 3) {
-			std::cout << "YOO\n";
-			if (tryToAuthenticate(i)) {
-				_clients[i].setAuthenticated(true);
-			}
-		}
-
-		if (_clients[i].isAuthenticated()) {
-			std::cout << "TRY TO AUTHENTICATE" << std::endl;
-			std::vector<Command>	auth_buf = _clients[i].getAuthBuf();
-			std::vector<std::string> arguments = auth_buf[0].getArguments();
-			if (arguments.empty())
-				return ;
-			if (arguments[0] == _password) { // if the password is correct
-				_clients[i].setIsConnected(true);
-				std::cout << "Client " << _clients[i].getFd() << " Connected!" << std::endl;
-			} else {
-				std::cout << "invalid password" << std::endl;
-			}
-			if (_clients[i].isConnected()) {
-				_clients[i].setAuthenticated(false);
-			}
-		}
-	}
-
-	//std::cout << "cmd_name: " << cmd.getCommandName() << std::endl;
-	//std::vector<std::string>	arguments = cmd.getArguments();
-	//std::cout << "_arguments: " << std::endl;
-	//for (size_t i = 0; i < arguments.size(); ++i) {
-		//std::cout << arguments[i] << std::endl;
-	//}
-}
-
 void sendMessage(IrcClient client, const std::string& message)
 {
 	send(client.getFd(), message.c_str(), message.size(), 0);
@@ -161,6 +68,51 @@ void	IrcServer::disconnectClient(int fd)
 		}
 	}
 	close(fd);
+}
+
+void	IrcServer::tryToRegister(int client_index)
+{
+	if (_clients[client_index].authenticated &&
+		_clients[client_index].getNickName() != "" &&
+		_clients[client_index].getUserName() != "") {
+		_clients[client_index].registered = true;
+		IrcLog::info("Client %i registered as %s (username: %s)", _clients[client_index].getFd(),
+				_clients[client_index].getNickName().c_str(),
+				_clients[client_index].getUserName().c_str());
+	}
+}
+
+void	IrcServer::parseCommand(std::string line, int client_index)
+{
+	Command	cmd;
+
+	StringHelper	tmp(line);
+	std::vector<std::string> tokens = tmp.trim().splitBySpace();
+	if (tokens.empty())
+		return ;
+	cmd.setCommandName(tokens[0]);
+	if (tokens.size() > 1) {
+		cmd.setArguments(tokens.begin() + 1, tokens.end());
+	}
+
+	std::string	command_name = cmd.getCommandName();
+	std::vector<std::string> arguments = cmd.getArguments();
+	//// TODO: check errors for each command
+	if (command_name == "PASS") {
+		if (arguments[0] == _password) {
+			_clients[client_index].authenticated = true;
+		} else {
+			IrcLog::error("Invalid password: %s", arguments[0].c_str());
+			disconnectClient(_clients[client_index].getFd());	
+		}
+	} else if (command_name == "NICK") {
+		_clients[client_index].setNickName(arguments[0]);
+	} else if (command_name == "USER") {
+		_clients[client_index].setUserName(arguments[0]);
+	} else {
+		IrcLog::info("Unkown command");
+	}
+	tryToRegister(client_index);
 }
 
 void	IrcServer::readData(int fd)
@@ -184,13 +136,9 @@ void	IrcServer::readData(int fd)
 			if (!line.empty() && line[line.size() - 1] == '\r')
 				line.erase(line.end() - 1);
 			_clients[i].input_buffer.erase(0, pos + 1);
-			// Parsing
-			Command	cmd;
-			cmd.setCommandName(line);
-			_authentification_cmds.push_back(cmd);
+			parseCommand(line, i);
 			pos = _clients[i].input_buffer.find("\n");
 		}
-		//parseReceivedData(message, fd);
 	} else {
 		disconnectClient(fd);
 		IrcLog::info("Client [%i] disconnected", fd);
