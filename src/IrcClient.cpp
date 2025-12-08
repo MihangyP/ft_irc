@@ -8,6 +8,7 @@ IrcClient::IrcClient(int fd, std::string address)
 	_authenticated = false;
 	_nickname = "";
 	_username = "";
+	input_buffer = "";
 }
 
 IrcClient::~IrcClient(void)

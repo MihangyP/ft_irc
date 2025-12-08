@@ -16,6 +16,8 @@ class	IrcClient {
 		std::string				_username;
 
 	public:
+		std::string				input_buffer;
+
 		IrcClient(int fd, std::string address);
 		~IrcClient(void);
 

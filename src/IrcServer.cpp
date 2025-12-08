@@ -172,6 +172,22 @@ void	IrcServer::readData(int fd)
 	if (bytes_read > 0) {
 		message[bytes_read] = '\0';
 		std::cout << "Client " << fd << ", Data: " << message << std::endl;
+		size_t i;
+		for (i = 0; i < _clients.size(); ++i) {
+			if (_clients[i].getFd() == fd)
+				break ;
+		}
+		_clients[i].input_buffer.append(message);
+		
+		size_t pos = _clients[i].input_buffer.find("\n");
+		while (pos != std::string::npos) {
+			std::string line = _clients[i].input_buffer.substr(0, pos);
+			if (!line.empty() && line[line.size() - 1] == '\r')
+				line.erase(line.end() - 1);
+			_clients[i].input_buffer.erase(0, pos + 1);
+			pos = _clients[i].input_buffer.find("\n");
+		}
+		IrcLog::debug("Message: %s", _clients[i].input_buffer.c_str());
 		//parseReceivedData(message, fd);
 	} else {
 		disconnectClient(fd);
