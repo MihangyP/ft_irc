@@ -77,7 +77,6 @@ void	IrcServer::tryToRegister(int client_index)
 		_clients[client_index].getUserName() != "") {
 		_clients[client_index].registered = true;
 		std::string response = ":ft_irc 001 " + _clients[client_index].getNickName() + " :Welcome to FT_IRC!\r\n";
-		//sendMessage(_clients[client_index], "001 Welcome to FT_IRC\r\n");
 		sendMessage(_clients[client_index], response);
 		IrcLog::info("Client %i registered as %s (username: %s)", _clients[client_index].getFd(),
 				_clients[client_index].getNickName().c_str(),
@@ -87,34 +86,11 @@ void	IrcServer::tryToRegister(int client_index)
 
 void	IrcServer::parseCommand(std::string line, int client_index)
 {
-	Command	cmd;
-
-	StringHelper	tmp(line);
-	std::vector<std::string> tokens = tmp.trim().splitBySpace();
-	if (tokens.empty())
+	t_status status = ParseCommand::parseCmd(_clients[client_index], line, _password);
+	if (status == INVALID_PASSWORD) {
+		disconnectClient(_clients[client_index].getFd());
+	} else if (status == EMPTY_COMMAND || status == UNKNOWN_COMMAND) {
 		return ;
-	cmd.setCommandName(tokens[0]);
-	if (tokens.size() > 1) {
-		cmd.setArguments(tokens.begin() + 1, tokens.end());
-	}
-
-	std::string	command_name = cmd.getCommandName();
-	std::vector<std::string> arguments = cmd.getArguments();
-	//// TODO: check errors for each command
-	if (command_name == "PASS") {
-		if (arguments[0] == _password) {
-			_clients[client_index].authenticated = true;
-		} else {
-			std::string response = ":ft_irc 464 " + _clients[client_index].getNickName() + " :Password incorrect!\r\n";
-			sendMessage(_clients[client_index], response);
-			disconnectClient(_clients[client_index].getFd());	
-		}
-	} else if (command_name == "NICK") {
-		_clients[client_index].setNickName(arguments[0]);
-	} else if (command_name == "USER") {
-		_clients[client_index].setUserName(arguments[0]);
-	} else {
-		IrcLog::info("Unkown command");
 	}
 	tryToRegister(client_index);
 }
