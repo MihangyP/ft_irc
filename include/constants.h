@@ -14,6 +14,9 @@ typedef enum e_command {
 	UNKNOWN
 } t_command;
 
+# define WITH_COMMAND_NAME 1
+# define WITHOUT_COMMAND_NAME 0
+
 // constant_values
 # define SERVER_NAME "ft_irc"
 # define MAX_MESSAGE_SIZE 1024

@@ -131,27 +131,35 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 	}
 }
 
-std::string	IrcServer::constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message)
+std::string	IrcServer::constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message, size_t with_cmd_name)
 {
 	std::string	response = ":"SERVER_NAME" " + status + " " +
 							(_clients[client_index].registered ? _clients[client_index].getNickName() : "*") +
-						 	" " + command_name + " :" + message + "\r\n";
+						 	(with_cmd_name ? (" " + command_name) : "") +
+							 " :" + message + "\r\n";
 	return (response);
 }
 
 void	IrcServer::parseCommand(std::string line, int client_index)
 {
 	Command cmd;
+	std::string	response;
 
 	std::string status = ParseCommand::parseCmd(line, cmd, _password, _clients, client_index);
 	if (status == EMPTY_COMMAND) return ; // Ignore
 	else if (status == ERR_NEEDMOREPARAMS) {
-		std::string response = constructErrorResponse(ERR_NEEDMOREPARAMS, client_index,
-				cmd.getCommandName(), "Not enough parameters");
+		response = constructErrorResponse(ERR_NEEDMOREPARAMS, client_index,
+				cmd.getCommandName(), "Not enough parameters", WITH_COMMAND_NAME);
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_PASSDMISMATCH) {
-		///
+		response = constructErrorResponse(ERR_PASSDMISMATCH, client_index,
+				cmd.getCommandName(), "Password incorrect", WITHOUT_COMMAND_NAME);
+		sendMessage(_clients[client_index], response);
 		disconnectClient(_clients[client_index].getFd());
+	} else if (status == ERR_ALREADYREGISTERED) {
+		response = constructErrorResponse(ERR_ALREADYREGISTERED, client_index,
+				cmd.getCommandName(), "You may not reregister", WITHOUT_COMMAND_NAME);
+		sendMessage(_clients[client_index], response);
 	} else if (status == SUCCESS) {
 		handleCommand(cmd, client_index);
 	}

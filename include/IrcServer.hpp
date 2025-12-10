@@ -47,7 +47,7 @@ class	IrcServer {
 		void		tryToRegister(int client_index);
 		// TODO: put this in a HandleCommand class
 		void		handleCommand(Command cmd, int client_index);
-		std::string	constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message);
+		std::string	constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message, size_t with_cmd_name);
 };
 
 #endif // __IRC_SERVER_HPP__
