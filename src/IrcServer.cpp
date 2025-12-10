@@ -160,6 +160,19 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 		response = constructErrorResponse(ERR_ALREADYREGISTERED, client_index,
 				cmd.getCommandName(), "You may not reregister", WITHOUT_COMMAND_NAME);
 		sendMessage(_clients[client_index], response);
+	} else if (status == ERR_NONICKNAMEGIVEN) {
+		response = constructErrorResponse(ERR_NONICKNAMEGIVEN, client_index,
+				cmd.getCommandName(), "No nickname given", WITHOUT_COMMAND_NAME);
+		sendMessage(_clients[client_index], response);
+	} else if (status == ERR_ERRONEUSSNICKNAME) {
+		response = constructErrorResponse(ERR_ERRONEUSSNICKNAME, client_index,
+				cmd.getCommandName(), "Erroneous nickname", WITHOUT_COMMAND_NAME);
+		sendMessage(_clients[client_index], response);
+	} else if (status == ERR_NICKNAMEINUSE) {
+		std::cout << "YOOOO" << std::endl;
+		response = ":"SERVER_NAME" " + status + " " + cmd.getArguments()[0] +
+					" :Nickname is already in use\r\n";
+		sendMessage(_clients[client_index], response);
 	} else if (status == SUCCESS) {
 		handleCommand(cmd, client_index);
 	}
