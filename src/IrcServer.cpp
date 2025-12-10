@@ -90,6 +90,7 @@ t_command	getAppropriateTag(const std::string& command_name)
 	else if (command_name == "NICK") return (NICK);
 	else if (command_name == "USER") return (USER);
 	else if (command_name == "QUIT") return (QUIT);
+	else if (command_name == "CAP") return (CAP);
 	else return (UNKNOWN);
 }
 
@@ -101,12 +102,7 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 	switch (command_tag) {
 		case PASS: {
 			if (arguments[0] == _password) {
-			_clients[client_index].authenticated = true;
-			} else {
-				// TODO: rewrite this properly
-				std::string response = ":ft_irc 464 " + _clients[client_index].getNickName() + " :Password incorrect!\r\n";
-				sendMessage(_clients[client_index], response);
-				return ;
+				_clients[client_index].authenticated = true;
 			}
 		} break;
 		case NICK: {
@@ -116,6 +112,13 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			_clients[client_index].setUserName(arguments[0]);
 		} break;
 		case QUIT: {
+			std::string quit_message = "Bye";
+			if (arguments.size()) quit_message = arguments[0];
+			// TODO: Send Message
+			disconnectClient(_clients[client_index].getFd());
+			return ;
+		} break;
+		case CAP: {
 			// TODO
 		} break;
 		case UNKNOWN: {
@@ -137,8 +140,8 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 	else if (status == ERR_NEEDMOREPARAMS) {
 		//std::string	response = ":"SERVER_NAME"";	
 	} else if (status == ERR_PASSDMISMATCH) {
-		disconnectClient(_clients[client_index].getFd());
 		///
+		disconnectClient(_clients[client_index].getFd());
 	} else if (status == SUCCESS) {
 		handleCommand(cmd, client_index);
 	}

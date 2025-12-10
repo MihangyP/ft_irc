@@ -10,6 +10,7 @@ typedef enum e_command {
 	NICK,
 	USER,
 	QUIT,
+	CAP,
 	UNKNOWN
 } t_command;
 

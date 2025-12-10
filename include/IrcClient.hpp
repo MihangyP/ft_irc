@@ -11,10 +11,10 @@ class	IrcClient {
 		std::string				_address;
 		std::string				_nickname;
 		std::string				_username;
-		int						_mode;
-		// TODO: what means _unused ?
-		std::string				_unused;
-		std::string				_realname;
+		//int						_mode;
+		//// TODO: what means _unused ?
+		//std::string				_unused;
+		//std::string				_realname;
 
 	public:
 		std::string				input_buffer;

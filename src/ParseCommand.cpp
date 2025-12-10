@@ -41,6 +41,9 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 		case QUIT: {
 			 // Nothing to do	
 		} break;
+		case CAP: {
+			// TODO: check errors for CAP command
+		} break;
 		case UNKNOWN: {
 			return (ERR_UNKNOWNCOMMAND);
 		} break;
