@@ -101,6 +101,7 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 		if (arguments[0] == _password) {
 			_clients[client_index].authenticated = true;
 		} else {
+			// TODO: rewrite this properly
 			std::string response = ":ft_irc 464 " + _clients[client_index].getNickName() + " :Password incorrect!\r\n";
 			sendMessage(_clients[client_index], response);
 			return ;
@@ -120,25 +121,16 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 {
 	Command cmd;
 
-	std::string status = ParseCommand::parseCmd(line, cmd);
+	std::string status = ParseCommand::parseCmd(line, cmd, _password, _clients);
 	if (status == EMPTY_COMMAND) return ; // Ignore
 	else if (status == ERR_NEEDMOREPARAMS) {
-		
+		//std::string	response = ":"SERVER_NAME"";	
+	} else if (status == ERR_PASSDMISMATCH) {
+		disconnectClient(_clients[client_index].getFd());
+		///
 	} else if (status == SUCCESS) {
 		handleCommand(cmd, client_index);
 	}
-
-	//if (status == INVALID_PASSWORD) {
-		//disconnectClient(_clients[client_index].getFd());
-	//} else if (status == EMPTY_COMMAND)
-		//return ;
-	//} else if (status == UNKNOWN_COMMAND) {
-		//// TODO:
-
-	//} else if (status == ARGUMENTS_ERROR) {
-		//// TODO:  print message ?
-		//return ;
-	//}
 }
 
 void	IrcServer::readData(int fd)

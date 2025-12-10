@@ -10,26 +10,29 @@ ParseCommand::~ParseCommand(void)
 
 }
 
-std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments)
+bool	nicknameInUse(std::string nickname, std::vector<IrcClient> clients)
+{
+	for (size_t i = 0; i < clients.size(); ++i) {
+		if (clients[i].getNickName() == nickname)
+			return (true);
+	}
+	return (false);
+}
+
+std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments, std::string password, std::vector<IrcClient> clients)
 {
 	switch (cmd_tag) {
 		case PASS: {
-			if (arguments.size() != 1) {
-				return (ERR_NEEDMOREPARAMS);
-			}
+			if (arguments.size() != 1) return (ERR_NEEDMOREPARAMS);
+			if (arguments[0] != password) return (ERR_PASSDMISMATCH);
 		} break;
 		case NICK: {
-			if (arguments.size() != 1) {
-				return (ERR_NEEDMOREPARAMS);
-			}
-			if (arguments[0].size() > 9) { // nickname must be <= 9
-				return (ERR_ERRONEUSSNICKNAME);
-			}
+			if (arguments.size() != 1) return (ERR_NONICKNAMEGIVEN);
+			if (arguments[0].size() > 9) return (ERR_ERRONEUSSNICKNAME);
+			if (nicknameInUse(arguments[0], clients)) return (ERR_NICKNAMEINUSE);
 		} break;
 		case USER: {
-			if (arguments.size() != 1) {
-				return (ERR_NEEDMOREPARAMS);
-			}
+			if (arguments.size() != 1) return (ERR_NEEDMOREPARAMS);
 		} break;
 		case UNKNOWN: {
 			return (ERR_UNKNOWNCOMMAND);
@@ -38,7 +41,7 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 	return (SUCCESS);
 }
  
-std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd)
+std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::string password, std::vector<IrcClient> clients)
 {
 	Command	tmp_cmd;
 
@@ -56,7 +59,7 @@ std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd)
 	std::vector<std::string> arguments = tmp_cmd.getArguments();
 	//// TODO: check errors for each command
 	t_command command_tag = getAppropriateTag(command_name);
-	std::string error = checkCommandError(command_tag, arguments);
+	std::string error = checkCommandError(command_tag, arguments, password, clients);
 	if (error != SUCCESS) {
 		return (error);		
 	}
