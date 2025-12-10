@@ -89,6 +89,7 @@ t_command	getAppropriateTag(const std::string& command_name)
 	if (command_name == "PASS") return (PASS);
 	else if (command_name == "NICK") return (NICK);
 	else if (command_name == "USER") return (USER);
+	else if (command_name == "QUIT") return (QUIT);
 	else return (UNKNOWN);
 }
 
@@ -96,20 +97,30 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 {
 	t_command command_tag = getAppropriateTag(cmd.getCommandName());
 	std::vector<std::string> arguments = cmd.getArguments();
-
-	if (command_tag == PASS) {
-		if (arguments[0] == _password) {
+	
+	switch (command_tag) {
+		case PASS: {
+			if (arguments[0] == _password) {
 			_clients[client_index].authenticated = true;
-		} else {
-			// TODO: rewrite this properly
-			std::string response = ":ft_irc 464 " + _clients[client_index].getNickName() + " :Password incorrect!\r\n";
-			sendMessage(_clients[client_index], response);
-			return ;
-		}
-	} else if (command_tag == NICK) {
-		_clients[client_index].setNickName(arguments[0]);
-	} else if (command_tag == USER) {
-		_clients[client_index].setUserName(arguments[0]);
+			} else {
+				// TODO: rewrite this properly
+				std::string response = ":ft_irc 464 " + _clients[client_index].getNickName() + " :Password incorrect!\r\n";
+				sendMessage(_clients[client_index], response);
+				return ;
+			}
+		} break;
+		case NICK: {
+			_clients[client_index].setNickName(arguments[0]);
+		} break;
+		case USER: {
+			_clients[client_index].setUserName(arguments[0]);
+		} break;
+		case QUIT: {
+			// TODO
+		} break;
+		case UNKNOWN: {
+
+		} break;
 	}
 
 	if (!_clients[client_index].registered) {

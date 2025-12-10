@@ -35,7 +35,11 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 		} break;
 		case USER: {
 			if (arguments.size() != 4) return (ERR_NEEDMOREPARAMS);
+			// TODO: check parameter errors
 			if (clients[client_index].registered) return(ERR_ALREADYREGISTERED);
+		} break;
+		case QUIT: {
+			 // Nothing to do	
 		} break;
 		case UNKNOWN: {
 			return (ERR_UNKNOWNCOMMAND);
