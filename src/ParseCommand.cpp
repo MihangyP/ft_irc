@@ -42,7 +42,8 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			 // Nothing to do	
 		} break;
 		case CAP: {
-			// TODO: check errors for CAP command
+			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
+			// TODO: manage other errors
 		} break;
 		case UNKNOWN: {
 			return (ERR_UNKNOWNCOMMAND);

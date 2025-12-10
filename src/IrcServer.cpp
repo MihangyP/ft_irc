@@ -98,6 +98,7 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 {
 	t_command command_tag = commandNameToTag(cmd.getCommandName());
 	std::vector<std::string> arguments = cmd.getArguments();
+	std::string	response;
 	
 	switch (command_tag) {
 		case PASS: {
@@ -114,12 +115,20 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 		case QUIT: {
 			std::string quit_message = "Bye";
 			if (arguments.size()) quit_message = arguments[0];
-			// TODO: Send Message
+			std::string nick = _clients[client_index].getNickName();
+			std::string user = _clients[client_index].getUserName();
+			response = ":" + nick + "!" + user + "@localhost QUIT :" + quit_message + "\r\n";
+			sendMessage(_clients[client_index], response);
 			disconnectClient(_clients[client_index].getFd());
 			return ;
 		} break;
 		case CAP: {
-			// TODO
+			if (arguments[0] == "END") return ;
+			if (arguments[0] == "LS")
+				response = ":"SERVER_NAME" CAP * LS :multi-prefix sasl";
+			else if (arguments[0] == "REQ")
+				response = ":"SERVER_NAME" CAP * ACK :multi-prefix";
+			sendMessage(_clients[client_index], response);
 		} break;
 		case UNKNOWN: {
 
