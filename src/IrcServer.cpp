@@ -48,7 +48,7 @@ void	IrcServer::addClient(void)
 	_fds.push_back(poll);
 }
 
-void sendMessage(IrcClient client, const std::string& message)
+void sendMessage(const IrcClient& client, const std::string& message)
 {
 	send(client.getFd(), message.c_str(), message.size(), 0);
 }
@@ -84,18 +84,61 @@ void	IrcServer::tryToRegister(int client_index)
 	}
 }
 
+t_command	getAppropriateTag(const std::string& command_name)
+{
+	if (command_name == "PASS") return (PASS);
+	else if (command_name == "NICK") return (NICK);
+	else if (command_name == "USER") return (USER);
+	else return (UNKNOWN);
+}
+
+void	IrcServer::handleCommand(Command cmd, int client_index)
+{
+	t_command command_tag = getAppropriateTag(cmd.getCommandName());
+	std::vector<std::string> arguments = cmd.getArguments();
+
+	if (command_tag == PASS) {
+		if (arguments[0] == _password) {
+			_clients[client_index].authenticated = true;
+		} else {
+			std::string response = ":ft_irc 464 " + _clients[client_index].getNickName() + " :Password incorrect!\r\n";
+			sendMessage(_clients[client_index], response);
+			return ;
+		}
+	} else if (command_tag == NICK) {
+		_clients[client_index].setNickName(arguments[0]);
+	} else if (command_tag == USER) {
+		_clients[client_index].setUserName(arguments[0]);
+	}
+
+	if (!_clients[client_index].registered) {
+		tryToRegister(client_index);
+	}
+}
+
 void	IrcServer::parseCommand(std::string line, int client_index)
 {
-	t_status status = ParseCommand::parseCmd(_clients[client_index], line, _password);
-	if (status == INVALID_PASSWORD) {
-		disconnectClient(_clients[client_index].getFd());
-	} else if (status == EMPTY_COMMAND || status == UNKNOWN_COMMAND) {
-		return ;
-	} else if (status == ARGUMENTS_ERROR) {
-		// TODO:  print message ?
-		return ;
+	Command cmd;
+
+	std::string status = ParseCommand::parseCmd(line, cmd);
+	if (status == EMPTY_COMMAND) return ; // Ignore
+	else if (status == ERR_NEEDMOREPARAMS) {
+		
+	} else if (status == SUCCESS) {
+		handleCommand(cmd, client_index);
 	}
-	tryToRegister(client_index);
+
+	//if (status == INVALID_PASSWORD) {
+		//disconnectClient(_clients[client_index].getFd());
+	//} else if (status == EMPTY_COMMAND)
+		//return ;
+	//} else if (status == UNKNOWN_COMMAND) {
+		//// TODO:
+
+	//} else if (status == ARGUMENTS_ERROR) {
+		//// TODO:  print message ?
+		//return ;
+	//}
 }
 
 void	IrcServer::readData(int fd)

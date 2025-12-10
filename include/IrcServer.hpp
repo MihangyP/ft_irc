@@ -45,6 +45,8 @@ class	IrcServer {
 		void		disconnectClient(int fd);
 		void		parseCommand(std::string line, int client_index);
 		void		tryToRegister(int client_index);
+		// TODO: put this in a HandleCommand class
+		void		handleCommand(Command cmd, int client_index);
 };
 
 #endif // __IRC_SERVER_HPP__

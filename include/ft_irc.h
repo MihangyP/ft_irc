@@ -4,8 +4,10 @@
 # include <iostream>
 # include <cstdlib>
 # include <csignal>
+# include "constants.h"
 # include "IrcClient.hpp"
 
-void	sendMessage(IrcClient client, const std::string& message);
+void		sendMessage(const IrcClient& client, const std::string& message);
+t_command	getAppropriateTag(const std::string& command_name);
 
 #endif // __FT_IRC_HPP__

@@ -14,7 +14,7 @@ class	ParseCommand
 		ParseCommand(void);
 		~ParseCommand(void);
 	public:
-		static t_status	parseCmd(IrcClient& client, const std::string& line, std::string password);
+		static std::string	parseCmd(const std::string& line, Command& cmd);
 };
 
 #endif // __PARSE_COMMAND_HPP__
