@@ -31,6 +31,7 @@ typedef enum e_command {
 # define ERR_ERRONEUSSNICKNAME	"432"
 # define ERR_NICKNAMEINUSE		"433"
 # define ERR_NEEDMOREPARAMS 	"461"
+# define ERR_ALREADYREGISTERED  "462"
 // - JOIN / PART / channel errors
 # define ERR_NOTREGISTERED		"451"
 # define ERR_NOSUCHCHANNEL		"403"
