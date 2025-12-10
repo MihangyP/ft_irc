@@ -22,19 +22,14 @@ bool	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments)
 {
 	switch (cmd_tag) {
 		case PASS: {
-			if (arguments.size() != 1) {
-				return (true);
-			}
+			if (arguments.size() != 1) return (true);
 		} break;
 		case NICK: {
-			if (arguments.size() != 1) {
-				return (true);
-			}
+			if (arguments.size() != 1) return (true);
+			if (arguments[0].size() > 9) return (true);
 		} break;
 		case USER: {
-			if (arguments.size() != 1) {
-				return (true);
-			}
+			if (arguments.size() != 1) return (true);
 		} break;
 		case UNKNOWN: {
 			return (true);
