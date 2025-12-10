@@ -68,7 +68,7 @@ std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::s
 	std::string	command_name = tmp_cmd.getCommandName();
 	std::vector<std::string> arguments = tmp_cmd.getArguments();
 	//// TODO: check errors for each command
-	t_command command_tag = getAppropriateTag(command_name);
+	t_command command_tag = commandNameToTag(command_name);
 	std::string error = checkCommandError(command_tag, arguments, password, clients, client_index);
 	if (error != SUCCESS) {
 		return (error);		

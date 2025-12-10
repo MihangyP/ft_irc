@@ -84,7 +84,7 @@ void	IrcServer::tryToRegister(int client_index)
 	}
 }
 
-t_command	getAppropriateTag(const std::string& command_name)
+t_command	commandNameToTag(const std::string& command_name)
 {
 	if (command_name == "PASS") return (PASS);
 	else if (command_name == "NICK") return (NICK);
@@ -96,7 +96,7 @@ t_command	getAppropriateTag(const std::string& command_name)
 
 void	IrcServer::handleCommand(Command cmd, int client_index)
 {
-	t_command command_tag = getAppropriateTag(cmd.getCommandName());
+	t_command command_tag = commandNameToTag(cmd.getCommandName());
 	std::vector<std::string> arguments = cmd.getArguments();
 	
 	switch (command_tag) {
@@ -131,6 +131,14 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 	}
 }
 
+std::string	IrcServer::constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message)
+{
+	std::string	response = ":"SERVER_NAME" " + status + " " +
+							(_clients[client_index].registered ? _clients[client_index].getNickName() : "*") +
+						 	" " + command_name + " :" + message + "\r\n";
+	return (response);
+}
+
 void	IrcServer::parseCommand(std::string line, int client_index)
 {
 	Command cmd;
@@ -138,7 +146,9 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 	std::string status = ParseCommand::parseCmd(line, cmd, _password, _clients, client_index);
 	if (status == EMPTY_COMMAND) return ; // Ignore
 	else if (status == ERR_NEEDMOREPARAMS) {
-		//std::string	response = ":"SERVER_NAME"";	
+		std::string response = constructErrorResponse(ERR_NEEDMOREPARAMS, client_index,
+				cmd.getCommandName(), "Not enough parameters");
+		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_PASSDMISMATCH) {
 		///
 		disconnectClient(_clients[client_index].getFd());
