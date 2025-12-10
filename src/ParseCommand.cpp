@@ -9,6 +9,14 @@ ParseCommand::~ParseCommand(void)
 {
 
 }
+
+t_command	getAppropriateTag(const std::string& command_name)
+{
+	if (command_name == "PASS") return (PASS);
+	else if (command_name == "NICK") return (NICK);
+	else if (command_name == "USER") return (USER);
+	else return (UNKNOWN);
+}
  
 t_status	ParseCommand::parseCmd(IrcClient& client, const std::string& line, std::string password)
 {
@@ -26,7 +34,8 @@ t_status	ParseCommand::parseCmd(IrcClient& client, const std::string& line, std:
 	std::string	command_name = cmd.getCommandName();
 	std::vector<std::string> arguments = cmd.getArguments();
 	//// TODO: check errors for each command
-	if (command_name == "PASS") {
+	t_command command_tag = getAppropriateTag(command_name); 
+	if (command_tag == PASS) {
 		if (arguments[0] == password) {
 			client.authenticated = true;
 		} else {
@@ -34,9 +43,9 @@ t_status	ParseCommand::parseCmd(IrcClient& client, const std::string& line, std:
 			sendMessage(client, response);
 			return (INVALID_PASSWORD);
 		}
-	} else if (command_name == "NICK") {
+	} else if (command_tag == NICK) {
 		client.setNickName(arguments[0]);
-	} else if (command_name == "USER") {
+	} else if (command_tag == USER) {
 		client.setUserName(arguments[0]);
 	} else {
 		IrcLog::info("Unkown command");

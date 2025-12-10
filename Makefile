@@ -2,7 +2,7 @@ NAME = ircserv
 FILES = ft_irc.cpp IrcServer.cpp IrcClient.cpp IrcException.cpp \
 		Command.cpp StringHelper.cpp IrcLog.cpp ParseCommand.cpp
 SRC_FILES = $(addprefix src/, $(FILES))
-HEADERS = ft_irc.h macro.h IrcServer.hpp IrcClient.hpp IrcException.hpp \
+HEADERS = ft_irc.h constants.h IrcServer.hpp IrcClient.hpp IrcException.hpp \
 		  Command.hpp StringHelper.hpp IrcLog.hpp ParseCommand.hpp
 HEADER_FILES = $(addprefix include/, $(HEADERS))
 OBJ_FILES = $(SRC_FILES:.cpp=.o)

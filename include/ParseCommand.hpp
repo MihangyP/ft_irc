@@ -5,9 +5,8 @@
 # include "IrcClient.hpp"
 # include "StringHelper.hpp"
 # include "IrcLog.hpp"
-# include "macro.h"
-
-void	sendMessage(IrcClient client, const std::string& message);
+# include "constants.h"
+# include "ft_irc.h"
 
 class	ParseCommand
 {

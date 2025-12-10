@@ -12,6 +12,14 @@ typedef enum e_status {
 	UNKNOWN_COMMAND
 } t_status;
 
+typedef enum e_command {
+	PASS,
+	NICK,
+	USER,
+	UNKNOWN
+} t_command;
+
+# define MAX_MESSAGE_SIZE 1024
 
 # define IRC_EXCEPTION(message) throw IrcException(message, __FILE__, __LINE__)
 

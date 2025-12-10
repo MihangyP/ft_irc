@@ -15,9 +15,7 @@
 # include "StringHelper.hpp"
 # include "IrcLog.hpp"
 # include "ParseCommand.hpp"
-# include "macro.h"
-
-# define MAX_MESSAGE_SIZE 1024
+# include "constants.h"
 
 
 // TODO: search what is the appropriate BACKLOG value
