@@ -91,6 +91,9 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 		disconnectClient(_clients[client_index].getFd());
 	} else if (status == EMPTY_COMMAND || status == UNKNOWN_COMMAND) {
 		return ;
+	} else if (status == ARGUMENTS_ERROR) {
+		// TODO:  print message ?
+		return ;
 	}
 	tryToRegister(client_index);
 }

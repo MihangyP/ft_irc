@@ -17,6 +17,31 @@ t_command	getAppropriateTag(const std::string& command_name)
 	else if (command_name == "USER") return (USER);
 	else return (UNKNOWN);
 }
+
+bool	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments)
+{
+	switch (cmd_tag) {
+		case PASS: {
+			if (arguments.size() != 1) {
+				return (true);
+			}
+		} break;
+		case NICK: {
+			if (arguments.size() != 1) {
+				return (true);
+			}
+		} break;
+		case USER: {
+			if (arguments.size() != 1) {
+				return (true);
+			}
+		} break;
+		case UNKNOWN: {
+			return (true);
+		} break;
+	}
+	return (false);
+}
  
 t_status	ParseCommand::parseCmd(IrcClient& client, const std::string& line, std::string password)
 {
@@ -34,7 +59,10 @@ t_status	ParseCommand::parseCmd(IrcClient& client, const std::string& line, std:
 	std::string	command_name = cmd.getCommandName();
 	std::vector<std::string> arguments = cmd.getArguments();
 	//// TODO: check errors for each command
-	t_command command_tag = getAppropriateTag(command_name); 
+	t_command command_tag = getAppropriateTag(command_name);
+	if (checkCommandError(command_tag, arguments)) {
+		return (ARGUMENTS_ERROR);	
+	}
 	if (command_tag == PASS) {
 		if (arguments[0] == password) {
 			client.authenticated = true;
