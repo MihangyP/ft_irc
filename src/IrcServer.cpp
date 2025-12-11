@@ -154,6 +154,7 @@ std::string	IrcServer::constructErrorResponse(std::string status, int client_ind
 	return (response);
 }
 
+// TODO: refactor this function
 void	IrcServer::parseCommand(std::string line, int client_index)
 {
 	Command cmd;
@@ -183,9 +184,20 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 				cmd.getCommandName(), "Erroneous nickname", WITHOUT_COMMAND_NAME);
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NICKNAMEINUSE) {
-		std::cout << "YOOOO" << std::endl;
 		response = ":"SERVER_NAME" " + status + " " + cmd.getArguments()[0] +
 					" :Nickname is already in use\r\n";
+		sendMessage(_clients[client_index], response);
+	} else if (status == ERR_NORECIPIENT) {
+		response = ":"SERVER_NAME" " + status + " " + _clients[client_index].getNickName() +
+					" :No recipient	given " + cmd.getCommandName() + "\r\n";
+		sendMessage(_clients[client_index], response);
+	} else if (status == ERR_NOTEXTTOSEND) {
+		response = ":"SERVER_NAME" " + status + " " + _clients[client_index].getNickName() +
+					" :No text to send\r\n";
+		sendMessage(_clients[client_index], response);
+	} else if (status == ERR_NOSUCHNICK) {
+		response = ":"SERVER_NAME" " + status + " " + _clients[client_index].getNickName() +
+					" " + cmd.getArguments()[0] + " :No such nick\r\n"; // or channel
 		sendMessage(_clients[client_index], response);
 	} else if (status == SUCCESS) {
 		handleCommand(cmd, client_index);
