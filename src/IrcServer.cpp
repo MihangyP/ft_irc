@@ -77,8 +77,34 @@ void	IrcServer::tryToRegister(int client_index)
 		_clients[client_index].getNickName() != "" &&
 		_clients[client_index].getUserName() != "") {
 		_clients[client_index].registered = true;
-		std::string response = ":ft_irc 001 " + _clients[client_index].getNickName() + " :Welcome to FT_IRC!\r\n";
-		sendMessage(_clients[client_index], response);
+		{
+			std::string response = ":" + std::string(SERVER_NAME) +
+				" " + std::string(RPL_WELCOME) +
+				" " + _clients[client_index].getNickName()  + " :Welcome to FT_IRC!\r\n";
+			sendMessage(_clients[client_index], response);
+		}
+		{
+			std::string response = ":" + std::string(SERVER_NAME) +
+				" " + std::string(RPL_YOURHOST) +
+				" " + _clients[client_index].getNickName()  + " :Your host is " +
+				std::string(SERVER_NAME) + "\r\n";
+			sendMessage(_clients[client_index], response);
+		}
+		{
+			std::string response = ":" + std::string(SERVER_NAME) +
+				" " + std::string(RPL_CREATED) +
+				" " + _clients[client_index].getNickName()  + " :This server was created at ...\r\n";
+			sendMessage(_clients[client_index], response);
+		}
+		{
+			//:server 004 <nick> <server> 1.0 oiwsz biklmnopstvr
+			std::string response = ":" + std::string(SERVER_NAME) +
+				" " + std::string(RPL_MYINFO) +
+				" " + _clients[client_index].getNickName() +
+				" " + std::string(SERVER_NAME) +
+				" 1.0 My Info\r\n";
+			sendMessage(_clients[client_index], response);
+		}
 		IrcLog::info("Client %i registered as %s (username: %s)", _clients[client_index].getFd(),
 				_clients[client_index].getNickName().c_str(),
 				_clients[client_index].getUserName().c_str());
@@ -127,13 +153,16 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 		case CAP: {
 			if (arguments[0] == "END") return ;
 			if (arguments[0] == "LS")
-				response = ":"SERVER_NAME" CAP * LS :multi-prefix sasl";
+				response = ":"SERVER_NAME" CAP * LS :multi-prefix sasl\r\n";
 			else if (arguments[0] == "REQ")
-				response = ":"SERVER_NAME" CAP * ACK :multi-prefix";
+				response = ":"SERVER_NAME" CAP * ACK :multi-prefix\r\n";
 			sendMessage(_clients[client_index], response);
 		} break;
 		case PRIVMSG: {
-
+			std::string nick_to_send = arguments[0];
+			std::string	message_to_send = arguments[1];
+			response = ":" + _clients[client_index].getNickName() + "!" + _clients[client_index].getUserName() + "@localhost" + " PRIVMSG " + nick_to_send + " :" + message_to_send + "\r\n";
+			sendMessage(_clients[client_index], response);
 		} break;
 		case UNKNOWN: {
 
