@@ -9,6 +9,5 @@
 
 void		sendMessage(const IrcClient& client, const std::string& message);
 t_command	commandNameToTag(const std::string& command_name);
-std::string toString(int number);
 
 #endif // __FT_IRC_HPP__

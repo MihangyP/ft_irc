@@ -17,8 +17,9 @@ class	StringHelper
 		StringHelper& operator=(const StringHelper &other);
 		~StringHelper(void);
 
-		StringHelper 		trim(void);
+		StringHelper 				trim(void);
 		std::vector<std::string>	splitBySpace(void);		
+		static std::string 			toString(int number);
 };
 
 #endif // __STRING_HELPER_HPP__

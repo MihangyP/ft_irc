@@ -151,6 +151,7 @@ std::string	IrcServer::constructErrorResponse(std::string status, int client_ind
 
 void	IrcServer::parseCommand(std::string line, int client_index)
 {
+	IrcLog::debug("LINE: %s", line.c_str());
 	Command cmd;
 	std::string	response;
 
@@ -195,7 +196,9 @@ void	IrcServer::readData(int fd)
 	ssize_t	bytes_read = recv(fd, message, sizeof message - 1, 0);
 	if (bytes_read > 0) {
 		message[bytes_read] = '\0';
+		std::cout << "----------------------------------------------" << std::endl;
 		std::cout << "Client " << fd << ", Data: " << message << std::endl;
+		std::cout << "----------------------------------------------" << std::endl;
 		size_t i;
 		for (i = 0; i < _clients.size(); ++i) {
 			if (_clients[i].getFd() == fd)

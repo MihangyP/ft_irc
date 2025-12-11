@@ -25,6 +25,14 @@ StringHelper::~StringHelper(void)
 
 }
 
+std::string StringHelper::toString(int number)
+{
+	std::ostringstream	string_stream;
+
+	string_stream << number;
+	return (string_stream.str());
+}
+
 // TODO: manage only spaces (IT SEGGGG)
 StringHelper 				StringHelper::trim(void)
 {

@@ -3,6 +3,7 @@
 
 # include <exception>
 # include <sstream>
+# include "StringHelper.hpp"
 
 class	IrcException: public std::exception {
 	private:
