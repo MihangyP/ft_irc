@@ -11,6 +11,7 @@ typedef enum e_command {
 	USER,
 	QUIT,
 	CAP,
+	PRIVMSG,
 	UNKNOWN
 } t_command;
 
@@ -37,6 +38,10 @@ typedef enum e_command {
 # define ERR_NICKNAMEINUSE		"433"
 # define ERR_NEEDMOREPARAMS 	"461"
 # define ERR_ALREADYREGISTERED  "462"
+// - Private Message
+# define ERR_NORECIPIENT		"411"
+# define ERR_NOTEXTTOSEND		"412"
+# define ERR_NOSUCHNICK			"401"
 // - JOIN / PART / channel errors
 # define ERR_NOTREGISTERED		"451"
 # define ERR_NOSUCHCHANNEL		"403"

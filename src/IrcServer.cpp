@@ -68,6 +68,7 @@ void	IrcServer::disconnectClient(int fd)
 		}
 	}
 	close(fd);
+	IrcLog::info("Client [%i] disconnected", fd);
 }
 
 void	IrcServer::tryToRegister(int client_index)
@@ -91,6 +92,7 @@ t_command	commandNameToTag(const std::string& command_name)
 	else if (command_name == "USER") return (USER);
 	else if (command_name == "QUIT") return (QUIT);
 	else if (command_name == "CAP") return (CAP);
+	else if (command_name == "PRIVMSG") return (PRIVMSG);
 	else return (UNKNOWN);
 }
 
@@ -130,6 +132,9 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 				response = ":"SERVER_NAME" CAP * ACK :multi-prefix";
 			sendMessage(_clients[client_index], response);
 		} break;
+		case PRIVMSG: {
+
+		} break;
 		case UNKNOWN: {
 
 		} break;
@@ -151,7 +156,6 @@ std::string	IrcServer::constructErrorResponse(std::string status, int client_ind
 
 void	IrcServer::parseCommand(std::string line, int client_index)
 {
-	IrcLog::debug("LINE: %s", line.c_str());
 	Command cmd;
 	std::string	response;
 
@@ -216,7 +220,6 @@ void	IrcServer::readData(int fd)
 		}
 	} else {
 		disconnectClient(fd);
-		IrcLog::info("Client [%i] disconnected", fd);
 	}
 }
 

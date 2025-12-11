@@ -19,6 +19,15 @@ bool	nicknameInUse(std::string nickname, std::vector<IrcClient> clients)
 	return (false);
 }
 
+bool	noSuchNick(std::string nickname, std::vector<IrcClient> clients)
+{
+	for (size_t i = 0; i < clients.size(); ++i) {
+		if (clients[i].registered && clients[i].getNickName() == nickname)
+			return (false);
+	}
+	return (true);
+}
+
 std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments, std::string password, std::vector<IrcClient> clients, int client_index)
 {
 	switch (cmd_tag) {
@@ -34,6 +43,7 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			if (nicknameInUse(arguments[0], clients)) return (ERR_NICKNAMEINUSE);
 		} break;
 		case USER: {
+			// TODO: parse correctly (":")
 			//if (arguments.size() != 4) return (ERR_NEEDMOREPARAMS);
 			// TODO: check parameter errors
 			if (clients[client_index].registered) return(ERR_ALREADYREGISTERED);
@@ -45,13 +55,19 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
 			// TODO: manage other errors
 		} break;
+		case PRIVMSG: {
+			if (!arguments.size()) return (ERR_NORECIPIENT);
+			if (noSuchNick(arguments[0], clients)) return (ERR_NOSUCHNICK);
+			if (arguments.size() == 1) return (ERR_NOTEXTTOSEND);
+		} break;
 		case UNKNOWN: {
 			return (ERR_UNKNOWNCOMMAND);
 		} break;
 	}
 	return (SUCCESS);
 }
- 
+
+// TODO: need some fix when extract arguments (ex: PRIVMSG #chan :hello world)
 std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::string password, std::vector<IrcClient> clients, int client_index)
 {
 	Command	tmp_cmd;
