@@ -67,7 +67,6 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 	return (SUCCESS);
 }
 
-// TODO: need some fix when extract arguments (ex: PRIVMSG #chan :hello world)
 std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::string password, std::vector<IrcClient> clients, int client_index)
 {
 	Command	tmp_cmd;
@@ -76,15 +75,34 @@ std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::s
 	std::vector<std::string> tokens = tmp.trim().splitBySpace();
 	if (tokens.empty())
 		return (EMPTY_COMMAND);
-	tmp_cmd.setCommandName(tokens[0]);	
-	if (tokens.size() > 1) {
-		tmp_cmd.setArguments(tokens.begin() + 1, tokens.end());
+
+	tmp_cmd.setCommandName(tokens[0]);
+
+	// Build arguments but treat the first token that starts with ':' as the start of the trailing parameter
+	std::vector<std::string> args;
+	for (size_t i = 1; i < tokens.size(); ++i) {
+		if (!tokens[i].empty() && tokens[i][0] == ':') {
+			// trailing parameter: join the current token (without leading ':') and all remaining tokens with spaces
+			std::string trailing = tokens[i].substr(1);
+			for (size_t j = i + 1; j < tokens.size(); ++j) {
+				trailing += " " + tokens[j];
+			}
+			args.push_back(trailing);
+			break;
+		} else {
+			args.push_back(tokens[i]);
+		}
 	}
+
+	if (!args.empty()) {
+		tmp_cmd.setArguments(args.begin(), args.end());
+	}
+
 	cmd = tmp_cmd;
 
 	std::string	command_name = tmp_cmd.getCommandName();
 	std::vector<std::string> arguments = tmp_cmd.getArguments();
-	//// TODO: check errors for each command
+
 	t_command command_tag = commandNameToTag(command_name);
 	std::string error = checkCommandError(command_tag, arguments, password, clients, client_index);
 	if (error != SUCCESS) {

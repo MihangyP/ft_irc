@@ -78,9 +78,12 @@ void	IrcServer::tryToRegister(int client_index)
 		_clients[client_index].getUserName() != "") {
 		_clients[client_index].registered = true;
 		{
+			//:server 001 <nick> :Welcome to the IRC Network <nick>!<user>@<host>
 			std::string response = ":" + std::string(SERVER_NAME) +
 				" " + std::string(RPL_WELCOME) +
-				" " + _clients[client_index].getNickName()  + " :Welcome to FT_IRC!\r\n";
+				" " + _clients[client_index].getNickName() + " :Welcome to FT_IRC! " +
+				_clients[client_index].getNickName() + "!" + _clients[client_index].getUserName() +
+				"@localhost\r\n";
 			sendMessage(_clients[client_index], response);
 		}
 		{
@@ -171,12 +174,18 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			sendMessage(_clients[client_index], response);
 		} break;
 		case PRIVMSG: {
-			size_t correspoding_client_index = getCorrespondingClient(arguments[0]);
-			IrcLog::debug("INDEX: %i", correspoding_client_index);
+			std::vector<std::string> arguments = cmd.getArguments();
 			std::string nick_to_send = arguments[0];
-			std::string	message_to_send = arguments[1];
-			response = ":" + _clients[client_index].getNickName() + "!" + _clients[client_index].getUserName() + "@localhost" + " PRIVMSG " + nick_to_send + " " + message_to_send + "\r\n";
-			sendMessage(_clients[correspoding_client_index], response);
+			std::string message_to_send = arguments[1];
+
+			size_t corresponding_client_index = getCorrespondingClient(nick_to_send);
+			//IrcLog::debug("INDEX: %i", corresponding_client_index);
+			std::string response = ":" + _clients[client_index].getNickName()
+			+ "!" + _clients[client_index].getUserName()
+			+ "@" + _clients[client_index].getAddress()
+			+ " PRIVMSG " + nick_to_send
+			+ " :" + message_to_send + "\r\n";
+			sendMessage(_clients[corresponding_client_index], response);
 		} break;
 		case UNKNOWN: {
 
