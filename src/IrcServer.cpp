@@ -178,8 +178,9 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			std::string nick_to_send = arguments[0];
 			std::string message_to_send = arguments[1];
 
+			IrcLog::debug("MESSAGE: %s", message_to_send.c_str());
+
 			size_t corresponding_client_index = getCorrespondingClient(nick_to_send);
-			//IrcLog::debug("INDEX: %i", corresponding_client_index);
 			std::string response = ":" + _clients[client_index].getNickName()
 			+ "!" + _clients[client_index].getUserName()
 			+ "@" + _clients[client_index].getAddress()
