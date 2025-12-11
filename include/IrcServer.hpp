@@ -45,6 +45,7 @@ class	IrcServer {
 		void		disconnectClient(int fd);
 		void		parseCommand(std::string line, int client_index);
 		void		tryToRegister(int client_index);
+		size_t 		getCorrespondingClient(std::string nickname);
 		// TODO: put this in a HandleCommand class
 		void		handleCommand(Command cmd, int client_index);
 		std::string	constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message, size_t with_cmd_name);

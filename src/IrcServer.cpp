@@ -122,6 +122,18 @@ t_command	commandNameToTag(const std::string& command_name)
 	else return (UNKNOWN);
 }
 
+size_t 	IrcServer::getCorrespondingClient(std::string nickname)
+{
+	size_t	client_index = 0;
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i].getNickName() == nickname) {
+			client_index = i;
+			break;
+		}
+	}
+	return (client_index);
+}
+
 void	IrcServer::handleCommand(Command cmd, int client_index)
 {
 	t_command command_tag = commandNameToTag(cmd.getCommandName());
@@ -159,10 +171,12 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			sendMessage(_clients[client_index], response);
 		} break;
 		case PRIVMSG: {
+			size_t correspoding_client_index = getCorrespondingClient(arguments[0]);
+			IrcLog::debug("INDEX: %i", correspoding_client_index);
 			std::string nick_to_send = arguments[0];
 			std::string	message_to_send = arguments[1];
-			response = ":" + _clients[client_index].getNickName() + "!" + _clients[client_index].getUserName() + "@localhost" + " PRIVMSG " + nick_to_send + " :" + message_to_send + "\r\n";
-			sendMessage(_clients[client_index], response);
+			response = ":" + _clients[client_index].getNickName() + "!" + _clients[client_index].getUserName() + "@localhost" + " PRIVMSG " + nick_to_send + " " + message_to_send + "\r\n";
+			sendMessage(_clients[correspoding_client_index], response);
 		} break;
 		case UNKNOWN: {
 
