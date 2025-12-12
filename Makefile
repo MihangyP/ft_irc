@@ -1,9 +1,11 @@
 NAME = ircserv
 FILES = ft_irc.cpp IrcServer.cpp IrcClient.cpp IrcException.cpp \
-		Command.cpp StringHelper.cpp IrcLog.cpp ParseCommand.cpp
+		Command.cpp StringHelper.cpp IrcLog.cpp ParseCommand.cpp \
+		HandleCommand.cpp
 SRC_FILES = $(addprefix src/, $(FILES))
 HEADERS = ft_irc.h constants.h IrcServer.hpp IrcClient.hpp IrcException.hpp \
-		  Command.hpp StringHelper.hpp IrcLog.hpp ParseCommand.hpp
+		  Command.hpp StringHelper.hpp IrcLog.hpp ParseCommand.hpp \
+		  HandleCommand.hpp
 HEADER_FILES = $(addprefix include/, $(HEADERS))
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 CPPC = c++
