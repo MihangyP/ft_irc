@@ -148,6 +148,23 @@ size_t 	IrcServer::getCorrespondingClient(std::string nickname)
 	return (client_index);
 }
 
+void	IrcServer::handleJoinCommand(Command cmd, int client_index)
+{
+	std::vector<std::string> arguments = cmd.getArguments();
+	std::string response;
+
+	StringHelper sh(arguments[0]);
+	std::vector<std::string> channels = sh.trim().splitByDelimiter(',');
+	if (channels.size() == 1 && channels[0] == "0") { // Quit all channels
+		_clients[client_index].quitAllChannels();
+		return ;
+	}
+	for (size_t i = 0; i < channels.size(); ++i) {
+		Channel	chan(channels[i]);
+		_clients[client_index].addChannel(chan);
+	}
+}
+
 void	IrcServer::handleCommand(Command cmd, int client_index)
 {
 	t_command command_tag = commandNameToTag(cmd.getCommandName());
@@ -199,19 +216,10 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			sendMessage(_clients[corresponding_client_index], response);
 		} break;
 		case JOIN: {
-			StringHelper sh(arguments[0]);
-			std::vector<std::string> channels = sh.trim().splitByDelimiter(',');
-			if (channels.size() == 1 && channels[0] == "0") { // Quit all channels
-				_clients[client_index].quitAllChannels();
-			}
-			for (size_t i = 0; i < channels.size(); ++i) {
-				Channel	chan(channels[i]);
-				_clients[client_index].addChannel(chan);
-			}
+			handleJoinCommand(cmd, client_index);
 		} break;
-		// TODO: Try to understand this command
 		case MODE: {
-
+			// TODO: Try to understand this command
 		} break;
 		case UNKNOWN: {
 
