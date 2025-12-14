@@ -122,6 +122,7 @@ t_command	commandNameToTag(const std::string& command_name)
 	else if (command_name == "QUIT") return (QUIT);
 	else if (command_name == "CAP") return (CAP);
 	else if (command_name == "PRIVMSG") return (PRIVMSG);
+	else if (command_name == "JOIN") return (JOIN);
 	else return (UNKNOWN);
 }
 
@@ -187,6 +188,9 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			+ " PRIVMSG " + nick_to_send
 			+ " :" + message_to_send + "\r\n";
 			sendMessage(_clients[corresponding_client_index], response);
+		} break;
+		case JOIN: {
+
 		} break;
 		case UNKNOWN: {
 

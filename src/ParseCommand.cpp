@@ -60,6 +60,9 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			if (noSuchNick(arguments[0], clients)) return (ERR_NOSUCHNICK);
 			if (arguments.size() == 1) return (ERR_NOTEXTTOSEND);
 		} break;
+		case JOIN: {
+
+		} break;
 		case UNKNOWN: {
 			return (ERR_UNKNOWNCOMMAND);
 		} break;

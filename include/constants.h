@@ -12,6 +12,7 @@ typedef enum e_command {
 	QUIT,
 	CAP,
 	PRIVMSG,
+	JOIN,
 	UNKNOWN
 } t_command;
 
