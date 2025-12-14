@@ -23,6 +23,16 @@ IrcServer::~IrcServer(void)
 
 }
 
+std::vector<Channel>	IrcServer::getAvailableChannels(void) const
+{
+	return (_available_channels);
+}
+
+void	IrcServer::addIntoAvailableChannels(Channel channel)
+{
+	_available_channels.push_back(channel);
+}
+
 // TODO: replace the vector of clients and fds into a map
 void	IrcServer::addClient(void)
 {
@@ -189,12 +199,14 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			sendMessage(_clients[corresponding_client_index], response);
 		} break;
 		case JOIN: {
-			// TODO: Implement getChannels
 			StringHelper sh(arguments[0]);
 			std::vector<std::string> channels = sh.trim().splitByDelimiter(',');
-			IrcLog::debug("---- CHANNLES ----");
+			if (channels.size() == 1 && channels[0] == "0") { // Quit all channels
+				_clients[client_index].quitAllChannels();
+			}
 			for (size_t i = 0; i < channels.size(); ++i) {
-				std::cout << channels[i] << std::endl;
+				Channel	chan(channels[i]);
+				_clients[client_index].addChannel(chan);
 			}
 		} break;
 		// TODO: Try to understand this command

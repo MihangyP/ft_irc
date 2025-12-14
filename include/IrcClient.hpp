@@ -35,6 +35,7 @@ class	IrcClient {
 		void		setNickName(std::string nickname);
 		void		setUserName(std::string username);
 		void		addChannel(Channel chan);
+		void		quitAllChannels(void);
 };
 
 #endif // __IRC_SERVER_HPP__
