@@ -148,27 +148,30 @@ size_t 	IrcServer::getCorrespondingClient(std::string nickname)
 	return (client_index);
 }
 
+// TODO: review constantly
+// What is channel operators
 void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 {
-	std::vector<std::string> arguments = cmd.getArguments();
-	std::string response;
+	//std::vector<std::string> arguments = cmd.getArguments();
+	//std::string response;
 
-	StringHelper channels_sh;
-	StringHelper keys_sh;
-	if (arguments.size())
-		channels_sh.setContent(arguments[0]);
-	if (arguments.size() >= 2)
-		keys_sh.setContent(arguments[2]);
-	std::vector<std::string>	channels = channels_sh.trim().splitByDelimiter(',');
-	std::vector<std::string>	keys = keys_sh.trim().splitByDelimiter(',');
-	if (channels.size() == 1 && channels[0] == "0") { // Quit all channels
-		_clients[client_index].quitAllChannels();
-		return ;
-	}
-	for (size_t i = 0; i < channels.size(); ++i) {
-		Channel	chan(channels[i]);
-		_clients[client_index].addChannel(chan);
-	}
+	//StringHelper channels_sh;
+	//StringHelper keys_sh;
+	//if (arguments.size())
+		//channels_sh.setContent(arguments[0]);
+	//if (arguments.size() >= 2)
+		//keys_sh.setContent(arguments[2]);
+	//std::vector<std::string>	channels = channels_sh.trim().splitByDelimiter(',');
+	//std::vector<std::string>	keys = keys_sh.trim().splitByDelimiter(',');
+	//if (channels.size() == 1 && channels[0] == "0") { // Quit all channels
+		//_clients[client_index].quitAllChannels();
+		//return ;
+	//}
+	//for (size_t i = 0; i < channels.size(); ++i) {
+		//Channel	chan(channels[i]);
+		//_clients[client_index].addChannel(chan);
+		//addIntoAvailableChannels(channels[i]);
+	//}
 }
 
 void	IrcServer::handleCommand(Command cmd, int client_index)

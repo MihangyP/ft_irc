@@ -5,7 +5,6 @@
 # include <unistd.h>
 # include <vector>
 # include "Command.hpp"
-# include "Channel.hpp"
 
 class	IrcClient {
 	private:
@@ -18,7 +17,7 @@ class	IrcClient {
 		//std::string				_realname;
 
 	public:
-		std::vector<Channel>	channels;
+		//std::vector<Channel>	channels;
 		//int						_mode;
 		std::string				input_buffer;
 		bool					authenticated;
@@ -34,8 +33,6 @@ class	IrcClient {
 
 		void		setNickName(std::string nickname);
 		void		setUserName(std::string username);
-		void		addChannel(Channel chan);
-		void		quitAllChannels(void);
 };
 
 #endif // __IRC_SERVER_HPP__

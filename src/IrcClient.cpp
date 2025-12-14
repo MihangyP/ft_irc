@@ -45,13 +45,3 @@ std::string	IrcClient::getUserName(void) const
 {
 	return (_username);
 }
-
-void	IrcClient::addChannel(Channel chan)
-{
-	channels.push_back(chan);
-}
-
-void	IrcClient::quitAllChannels(void)
-{
-	channels.clear();	
-}
