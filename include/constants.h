@@ -13,6 +13,7 @@ typedef enum e_command {
 	CAP,
 	PRIVMSG,
 	JOIN,
+	MODE,
 	UNKNOWN
 } t_command;
 

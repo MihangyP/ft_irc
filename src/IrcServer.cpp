@@ -175,7 +175,6 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			sendMessage(_clients[client_index], response);
 		} break;
 		case PRIVMSG: {
-			std::vector<std::string> arguments = cmd.getArguments();
 			std::string nick_to_send = arguments[0];
 			std::string message_to_send = arguments[1];
 
@@ -190,6 +189,16 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			sendMessage(_clients[corresponding_client_index], response);
 		} break;
 		case JOIN: {
+			// TODO: Implement getChannels
+			StringHelper sh(arguments[0]);
+			std::vector<std::string> channels = sh.trim().splitByDelimiter(',');
+			IrcLog::debug("---- CHANNLES ----");
+			for (size_t i = 0; i < channels.size(); ++i) {
+				std::cout << channels[i] << std::endl;
+			}
+		} break;
+		// TODO: Try to understand this command
+		case MODE: {
 
 		} break;
 		case UNKNOWN: {

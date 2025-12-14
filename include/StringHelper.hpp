@@ -18,7 +18,8 @@ class	StringHelper
 		~StringHelper(void);
 
 		StringHelper 				trim(void);
-		std::vector<std::string>	splitBySpace(void);		
+		std::vector<std::string>	splitBySpace(void);	
+		std::vector<std::string>	splitByDelimiter(char del);
 		static std::string 			toString(int number);
 };
 

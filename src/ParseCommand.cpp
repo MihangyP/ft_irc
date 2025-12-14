@@ -61,6 +61,10 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			if (arguments.size() == 1) return (ERR_NOTEXTTOSEND);
 		} break;
 		case JOIN: {
+			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
+
+		} break;
+		case MODE: {
 
 		} break;
 		case UNKNOWN: {

@@ -63,3 +63,17 @@ std::vector<std::string>	StringHelper::splitBySpace(void)
 	}
 	return (tokens);
 }
+
+std::vector<std::string>	StringHelper::splitByDelimiter(char del)
+{
+	std::vector<std::string>	tokens;
+	size_t pos = _content.find(del);
+	size_t	start = 0;
+	while (pos != std::string::npos) {
+		tokens.push_back(_content.substr(start, pos - start));
+		start = pos + 1;
+		pos = _content.find(del, start);
+	}
+	tokens.push_back(_content.substr(start));
+	return (tokens);
+}
