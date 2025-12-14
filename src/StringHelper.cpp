@@ -1,5 +1,10 @@
 #include "StringHelper.hpp"
 
+StringHelper::StringHelper(void) : _content("")
+{
+
+}
+
 StringHelper::StringHelper(std::string content)
 {
 	_content = content;
@@ -23,6 +28,11 @@ StringHelper& StringHelper::operator=(const StringHelper &other)
 StringHelper::~StringHelper(void)
 {
 
+}
+
+void	StringHelper::setContent(std::string content)
+{
+	_content = content;
 }
 
 std::string StringHelper::toString(int number)

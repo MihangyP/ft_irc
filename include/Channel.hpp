@@ -7,6 +7,7 @@ class	Channel
 {
 	private:
 		std::string	_name;
+		//std::string _
 
 	public:
 		Channel(std::string chan_name);

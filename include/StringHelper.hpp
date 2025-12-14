@@ -12,11 +12,13 @@ class	StringHelper
 		std::string	_content;
 
 	public:
+		StringHelper(void);
 		StringHelper(std::string content);
 		StringHelper(const StringHelper &other);
 		StringHelper& operator=(const StringHelper &other);
 		~StringHelper(void);
 
+		void						setContent(std::string content);
 		StringHelper 				trim(void);
 		std::vector<std::string>	splitBySpace(void);	
 		std::vector<std::string>	splitByDelimiter(char del);
