@@ -193,7 +193,7 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 			_available_channels[_available_channels.size() - 1].addOperator(_clients[client_index]);
 			// Confirmation
 			{
-				response = ":" + nick + "!" + user + "@" + " JOIN " + channels[i] + "\r\n";
+				response = ":" + nick + "!" + user + "@localhost" + " JOIN " + channels[i] + "\r\n";
 				sendMessage(_clients[client_index], response);
 			}
 			// Mode (automatic operator)
@@ -217,7 +217,6 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 				response = ":"SERVER_NAME" 366 " + nick + " " + channels[i] + " :End of /NAMES list\r\n";
 				sendMessage(_clients[client_index], response);
 			}
-			// TODO: set chan op
 		} else { // join a channel
 			_available_channels[found].addMember(_clients[client_index]);
 		}
