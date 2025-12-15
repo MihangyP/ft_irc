@@ -186,6 +186,7 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 		int found = alreadyAvailable(chan.getName());
 		if (found == -1) { // create a channel
 			addIntoAvailableChannels(chan);
+			_available_channels[_available_channels.size() - 1].addMember(_clients[client_index]);
 			// TODO: set chan op
 		} else { // join a channel
 			_available_channels[found].addMember(_clients[client_index]);
