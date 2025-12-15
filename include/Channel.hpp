@@ -15,6 +15,8 @@ class	Channel
 
 	public:
 		Channel(std::string chan_name);
+		Channel(const Channel& other);
+		Channel& operator=(const Channel& other);
 		~Channel(void);
 
 		bool	isMember(IrcClient client) const;
@@ -26,8 +28,11 @@ class	Channel
 		void	removeMember(IrcClient client);
 		void	removeOperator(IrcClient op);
 
-		std::string	getName(void) const;
-		std::string getKey(void) const;
+
+		std::string				getName(void) const;
+		std::string 			getKey(void) const;
+		std::vector<IrcClient>	getMembers(void) const;
+		std::vector<IrcClient>	getOperators(void) const;
 
 		void	setName(std::string name);
 		void	setKey(std::string key);

@@ -7,6 +7,29 @@ Channel::Channel(std::string chan_name)
 	_topic = "default topic";
 }
 
+Channel::Channel(const Channel& other)
+{
+	if (this != &other) {
+		_name = other._name;	
+		_key = other._key;	
+		_members = other._members;	
+		_operators = other._operators;
+		_topic = other._topic;
+	}
+}
+
+Channel& Channel::operator=(const Channel& other)
+{
+	if (this != &other) {
+		_name = other._name;	
+		_key = other._key;	
+		_members = other._members;	
+		_operators = other._operators;
+		_topic = other._topic;
+	}
+	return (*this);
+}
+
 Channel::~Channel(void)
 {
 	// Nothing to put here
@@ -20,6 +43,16 @@ std::string	Channel::getName(void) const
 std::string	Channel::getKey(void) const
 {
 	return (_key);
+}
+
+std::vector<IrcClient> Channel::getMembers(void) const
+{
+	return (_members);
+}
+
+std::vector<IrcClient> Channel::getOperators(void) const
+{
+	return (_operators);
 }
 
 void	Channel::setName(std::string name)
