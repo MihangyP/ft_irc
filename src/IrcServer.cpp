@@ -162,6 +162,8 @@ int	IrcServer::alreadyAvailable(std::string name)
 void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 {
 	std::vector<std::string> arguments = cmd.getArguments();
+	std::string nick = _clients[client_index].getNickName();
+	std::string user = _clients[client_index].getUserName();
 	std::string response;
 
 	StringHelper channels_sh;
@@ -181,12 +183,39 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 		return ;
 	}
 
+	// TODO: key stufff
 	for (size_t i = 0; i < channels.size(); ++i) {
 		Channel chan(channels[i]);
 		int found = alreadyAvailable(chan.getName());
 		if (found == -1) { // create a channel
 			addIntoAvailableChannels(chan);
 			_available_channels[_available_channels.size() - 1].addMember(_clients[client_index]);
+			_available_channels[_available_channels.size() - 1].addOperator(_clients[client_index]);
+			// Confirmation
+			{
+				response = ":" + nick + "!" + user + "@" + " JOIN " + channels[i] + "\r\n";
+				sendMessage(_clients[client_index], response);
+			}
+			// Mode (automatic operator)
+			{
+
+			}
+			// Topic
+			{
+				response = ":"SERVER_NAME" 331 " + nick + " " + channels[i] + " :No topic is set\r\n";
+				sendMessage(_clients[client_index], response);
+			}
+			// NAMES
+			// :server 353 nick = #test :@nick
+			{
+				response = ":"SERVER_NAME" 353 " + nick + " = " +  channels[i] + " :@" + nick + "\r\n";
+				sendMessage(_clients[client_index], response);
+			}
+			// End of NAMES
+			{
+				response = ":"SERVER_NAME" 366 " + nick + " " + channels[i] + " :End of /NAMES list\r\n";
+				sendMessage(_clients[client_index], response);
+			}
 			// TODO: set chan op
 		} else { // join a channel
 			_available_channels[found].addMember(_clients[client_index]);
