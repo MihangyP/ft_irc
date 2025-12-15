@@ -198,7 +198,8 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 			}
 			// Mode (automatic operator)
 			{
-
+				response = ":"SERVER_NAME" MODE " + channels[i] + " +o " + nick + "\r\n";
+				sendMessage(_clients[client_index], response);
 			}
 			// Topic
 			{
