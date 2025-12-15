@@ -11,6 +11,7 @@ class	Channel
 		std::string 			_key;
 		std::vector<IrcClient>	_members;
 		std::vector<IrcClient>	_operators;
+		std::string				_topic;
 
 	public:
 		Channel(std::string chan_name);

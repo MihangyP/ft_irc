@@ -148,6 +148,15 @@ size_t 	IrcServer::getCorrespondingClient(std::string nickname)
 	return (client_index);
 }
 
+int	IrcServer::alreadyAvailable(std::string name)
+{
+	for (size_t i = 0; i < _available_channels.size(); ++i) {
+		if (_available_channels[i].getName() == name)
+			return (i);
+	}
+	return (-1);	
+}
+
 // TODO: review constantly
 // What is channel operators
 void	IrcServer::handleJoinCommand(Command cmd, int client_index)
@@ -171,11 +180,18 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 		}
 		return ;
 	}
-	//for (size_t i = 0; i < channels.size(); ++i) {
-		//Channel	chan(channels[i]);
-		//_clients[client_index].addChannel(chan);
-		//addIntoAvailableChannels(channels[i]);
-	//}
+
+	for (size_t i = 0; i < channels.size(); ++i) {
+		Channel chan(channels[i]);
+		int found = alreadyAvailable(chan.getName());
+		if (found == -1) { // create a channel
+			addIntoAvailableChannels(chan);
+			// TODO: set chan op
+		} else { // join a channel
+			_available_channels[found].addMember(_clients[client_index]);
+		}
+	}
+
 }
 
 void	IrcServer::handleCommand(Command cmd, int client_index)

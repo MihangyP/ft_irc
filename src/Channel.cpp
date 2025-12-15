@@ -4,6 +4,7 @@ Channel::Channel(std::string chan_name)
 {
 	_name = chan_name;
 	_key = "";
+	_topic = "default topic";
 }
 
 Channel::~Channel(void)

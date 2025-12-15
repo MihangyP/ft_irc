@@ -50,6 +50,7 @@ class	IrcServer {
 		size_t 					getCorrespondingClient(std::string nickname);
 		std::vector<Channel>	getAvailableChannels(void) const;
 		void					addIntoAvailableChannels(Channel chanel);
+		int						alreadyAvailable(std::string name);
 		// TODO: put this in a HandleCommand class
 		void		handleCommand(Command cmd, int client_index);
 		void		handleJoinCommand(Command cmd, int client_index);
