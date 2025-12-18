@@ -157,18 +157,27 @@ int	IrcServer::alreadyAvailable(std::string name)
 	return (-1);	
 }
 
-std::string construct_name_list(Channel chan, std::vector<IrcClient> operators, std::vector<IrcClient> members)
+std::string IrcServer::construct_name_list(std::string chan_name)
 {
+	int chan_index = 0;
+	for (; chan_index < (int)_available_channels.size(); ++chan_index) {
+		if (_available_channels[chan_index].getName() == chan_name)
+			break ;	
+	}
 	std::string result;
 	std::string operators_names;
 	std::string members_names;
+
+	std::vector<IrcClient> members = _available_channels[chan_index].getMembers();
+	std::vector<IrcClient> operators = _available_channels[chan_index].getOperators();
+	
 	for (size_t i = 0; i < operators.size(); ++i) {
 		operators_names.append("@" + operators[i].getNickName());
 		if (i != operators.size() - 1)
 			operators_names.append(" ");
 	}
 	for (size_t i = 0; i < members.size(); ++i) {
-		if (!chan.isOperator(members[i]))
+		if (!_available_channels[chan_index].isOperator(members[i]))
 			members_names.append(members[i].getNickName());
 		if (i != members.size() - 1)
 			members_names.append(" ");
@@ -239,8 +248,8 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 				sendMessage(_clients[client_index], response);
 			}
 		} else { // join a channel
-			std::vector<IrcClient>  members = chan.getMembers();
-			std::vector<IrcClient>  operators = chan.getOperators();
+			//std::vector<IrcClient>  members = chan.getMembers();
+			//std::vector<IrcClient>  operators = chan.getOperators();
 			_available_channels[found].addMember(_clients[client_index]);
 			// Confirmation
 			{
@@ -253,7 +262,18 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 				sendMessage(_clients[client_index], response);
 			}
 			// NAMES
-			std::string names_list = construct_name_list(chan, operators, members);
+			{
+				//:server 353 nick = #channel :@op1 +voice1 user2 user3
+				std::string names_list = construct_name_list(channels[i]);
+				//IrcLog::debug("names_list: %s", names_list.c_str());
+				response = ":"SERVER_NAME" 353 " + nick + " = " + channels[i] + " :" + names_list + "\r\n";
+				sendMessage(_clients[client_index], response);
+			}
+			// End of NAMES
+			{
+				response = ":"SERVER_NAME" 366 " + nick + " " + channels[i] + " :End of /NAMES list\r\n";
+				sendMessage(_clients[client_index], response);
+			}
 		}
 	}
 
