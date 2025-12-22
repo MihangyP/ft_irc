@@ -4,7 +4,7 @@ Channel::Channel(std::string chan_name)
 {
 	_name = chan_name;
 	_key = "";
-	_topic = "default topic";
+	_topic = "";
 }
 
 Channel::Channel(const Channel& other)
@@ -53,6 +53,11 @@ std::vector<IrcClient> Channel::getMembers(void) const
 std::vector<IrcClient> Channel::getOperators(void) const
 {
 	return (_operators);
+}
+
+std::string	Channel::getTopic(void) const
+{
+	return (_topic);
 }
 
 void	Channel::setName(std::string name)

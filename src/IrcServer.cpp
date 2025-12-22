@@ -322,58 +322,30 @@ void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& cha
 			IrcLog::debug("MESSAGE: %s", text.c_str());
 
 			std::string response = ":" + _clients[client_index].getNickName()
-				  + "!" + _clients[client_index].getUserName()
+				  + "!" + nick
 				  + "@" + _clients[client_index].getAddress()
 				  + " PRIVMSG " + target
 				  + " :" + text + "\r\n";
 
 			if (chan_data.is_channel) {
 				  const std::vector<IrcClient>& members = _available_channels[chan_data.index].getMembers();
-
 				for (size_t i = 0; i < members.size(); ++i) {
 					int c_index = getCorrespondingClient(members[i].getNickName());
-					sendMessage(_clients[c_index], response);
+					if (c_index != client_index)
+						sendMessage(_clients[c_index], response);
 				}
 			} else {
 				  size_t target_index = getCorrespondingClient(target);
 				  sendMessage(_clients[target_index], response);
 			}
 		} break;
-		/*
-		case PRIVMSG: {
-			std::string nick_to_send = arguments[0];
-			std::string message_to_send = arguments[1];
-
-			IrcLog::debug("MESSAGE: %s", message_to_send.c_str());
-
-			if (chan_data.is_channel) {
-				std::string response = ":" + _clients[client_index].getNickName()
-					+ "!" + _clients[client_index].getUserName()
-					+ "@" + _clients[client_index].getAddress()
-					+ " PRIVMSG " + nick_to_send
-					+ " :" + message_to_send + "\r\n";
-				std::vector<IrcClient> members = _available_channels[chan_data.index].getMembers();
-				for (size_t i = 0; i < members.size(); ++i) {
-					int c_index = getCorrespondingClient(members[i].getNickName());
-					//IrcLog::debug("usr_channel_name: %s", _clients[c_index].getNickName().c_str());
-					//if (c_index != client_index)
-					sendMessage(_clients[c_index], response);
-				}
-			} else {
-				size_t corresponding_client_index = getCorrespondingClient(nick_to_send);
-				std::string response = ":" + _clients[client_index].getNickName()
-					+ "!" + _clients[client_index].getUserName()
-					+ "@" + _clients[client_index].getAddress()
-					+ " PRIVMSG " + nick_to_send
-					+ " :" + message_to_send + "\r\n";
-				sendMessage(_clients[corresponding_client_index], response);
-			}
-		} break;
-		*/
 		case JOIN: {
 			handleJoinCommand(cmd, client_index);
 		} break;
 		case MODE: {
+			// TODO: Try to understand this command
+		} break;
+		case TOPIC: {
 			// TODO: Try to understand this command
 		} break;
 		case UNKNOWN: {
@@ -442,6 +414,11 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 	} else if (status == ERR_NOSUCHNICK) {
 		response = ":" SERVER_NAME " " + status + " " + _clients[client_index].getNickName() +
 					" " + cmd.getArguments()[0] + " :No such nick\r\n"; // or channel
+		sendMessage(_clients[client_index], response);
+	} else if (status == RPL_NOTOPIC) {
+		//:server 331 Mihangy #mychannel :No topic is set
+		response = ":" SERVER_NAME " " + status + " " + _clients[client_index].getNickName() +
+			      " " + cmd.getArguments()[0] + " :No topic is set\r\n";
 		sendMessage(_clients[client_index], response);
 	} else if (status == SUCCESS) {
 		handleCommand(cmd, client_index, channel_data);

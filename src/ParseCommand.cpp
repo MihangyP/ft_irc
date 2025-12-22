@@ -37,6 +37,18 @@ int noSuchChannel(std::string name, std::vector<Channel> &channels)
 	return (-1);
 }
 
+bool	channelHasNoTopic(std::vector<Channel>& channels, const std::string chan_name)
+{
+	size_t i = 0;
+	for (; i < channels.size(); ++i) {
+		if (channels[i].getName() == chan_name)
+			break ;
+	}
+	if (channels[i].getTopic() == "")
+		return (true);
+	return (false);
+}
+
 std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments, std::string password, std::vector<IrcClient> clients, int client_index, std::vector<Channel>& channels, t_channel_data& chan_data)
 {
 	switch (cmd_tag) {
@@ -84,6 +96,11 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 		} break;
 		case MODE: {
 
+		} break;
+		case TOPIC: {
+			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
+			std::string chan_name = arguments[0];
+			if (channelHasNoTopic(channels, chan_name)) return (RPL_NOTOPIC);
 		} break;
 		case UNKNOWN: {
 			return (ERR_UNKNOWNCOMMAND);
