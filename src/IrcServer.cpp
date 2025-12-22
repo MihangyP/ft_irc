@@ -228,23 +228,23 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 			}
 			// Mode (automatic operator)
 			{
-				response = ":"SERVER_NAME" MODE " + channels[i] + " +o " + nick + "\r\n";
+				response = ":" SERVER_NAME " MODE " + channels[i] + " +o " + nick + "\r\n";
 				sendMessage(_clients[client_index], response);
 			}
 			// Topic
 			{
-				response = ":"SERVER_NAME" 331 " + nick + " " + channels[i] + " :No topic is set\r\n";
+				response = ":" SERVER_NAME " 331 " + nick + " " + channels[i] + " :No topic is set\r\n";
 				sendMessage(_clients[client_index], response);
 			}
 			// NAMES
 			// :server 353 nick = #test :@nick
 			{
-				response = ":"SERVER_NAME" 353 " + nick + " = " +  channels[i] + " :@" + nick + "\r\n";
+				response = ":" SERVER_NAME " 353 " + nick + " = " +  channels[i] + " :@" + nick + "\r\n";
 				sendMessage(_clients[client_index], response);
 			}
 			// End of NAMES
 			{
-				response = ":"SERVER_NAME" 366 " + nick + " " + channels[i] + " :End of /NAMES list\r\n";
+				response = ":" SERVER_NAME " 366 " + nick + " " + channels[i] + " :End of /NAMES list\r\n";
 				sendMessage(_clients[client_index], response);
 			}
 		} else { // join a channel
@@ -258,7 +258,7 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 			}
 			// Topic
 			{
-				response = ":"SERVER_NAME" 331 " + nick + " " + channels[i] + " :No topic is set\r\n";
+				response = ":" SERVER_NAME " 331 " + nick + " " + channels[i] + " :No topic is set\r\n";
 				sendMessage(_clients[client_index], response);
 			}
 			// NAMES
@@ -266,12 +266,12 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 				//:server 353 nick = #channel :@op1 +voice1 user2 user3
 				std::string names_list = construct_name_list(channels[i]);
 				//IrcLog::debug("names_list: %s", names_list.c_str());
-				response = ":"SERVER_NAME" 353 " + nick + " = " + channels[i] + " :" + names_list + "\r\n";
+				response = ":" SERVER_NAME " 353 " + nick + " = " + channels[i] + " :" + names_list + "\r\n";
 				sendMessage(_clients[client_index], response);
 			}
 			// End of NAMES
 			{
-				response = ":"SERVER_NAME" 366 " + nick + " " + channels[i] + " :End of /NAMES list\r\n";
+				response = ":" SERVER_NAME " 366 " + nick + " " + channels[i] + " :End of /NAMES list\r\n";
 				sendMessage(_clients[client_index], response);
 			}
 		}
@@ -310,9 +310,9 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 		case CAP: {
 			if (arguments[0] == "END") return ;
 			if (arguments[0] == "LS")
-				response = ":"SERVER_NAME" CAP * LS :multi-prefix sasl\r\n";
+				response = ":" SERVER_NAME " CAP * LS :multi-prefix sasl\r\n";
 			else if (arguments[0] == "REQ")
-				response = ":"SERVER_NAME" CAP * ACK :multi-prefix\r\n";
+				response = ":" SERVER_NAME " CAP * ACK :multi-prefix\r\n";
 			sendMessage(_clients[client_index], response);
 		} break;
 		case PRIVMSG: {
@@ -347,7 +347,7 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 
 std::string	IrcServer::constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message, size_t with_cmd_name)
 {
-	std::string	response = ":"SERVER_NAME" " + status + " " +
+	std::string	response = ":" SERVER_NAME " " + status + " " +
 							(_clients[client_index].registered ? _clients[client_index].getNickName() : "*") +
 						 	(with_cmd_name ? (" " + command_name) : "") +
 							 " :" + message + "\r\n";
@@ -384,19 +384,19 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 				cmd.getCommandName(), "Erroneous nickname", WITHOUT_COMMAND_NAME);
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NICKNAMEINUSE) {
-		response = ":"SERVER_NAME" " + status + " " + cmd.getArguments()[0] +
+		response = ":" SERVER_NAME " " + status + " " + cmd.getArguments()[0] +
 					" :Nickname is already in use\r\n";
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NORECIPIENT) {
-		response = ":"SERVER_NAME" " + status + " " + _clients[client_index].getNickName() +
+		response = ":" SERVER_NAME " " + status + " " + _clients[client_index].getNickName() +
 					" :No recipient	given " + cmd.getCommandName() + "\r\n";
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NOTEXTTOSEND) {
-		response = ":"SERVER_NAME" " + status + " " + _clients[client_index].getNickName() +
+		response = ":" SERVER_NAME " " + status + " " + _clients[client_index].getNickName() +
 					" :No text to send\r\n";
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NOSUCHNICK) {
-		response = ":"SERVER_NAME" " + status + " " + _clients[client_index].getNickName() +
+		response = ":" SERVER_NAME " " + status + " " + _clients[client_index].getNickName() +
 					" " + cmd.getArguments()[0] + " :No such nick\r\n"; // or channel
 		sendMessage(_clients[client_index], response);
 	} else if (status == SUCCESS) {

@@ -57,12 +57,17 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 		} break;
 		case PRIVMSG: {
 			if (!arguments.size()) return (ERR_NORECIPIENT);
-			if (noSuchNick(arguments[0], clients)) return (ERR_NOSUCHNICK);
+			std::string name = arguments[0];
+			//if (arguments[0][0] == "#" && ) {
+
+			//} else {
+				if (noSuchNick(name, clients)) return (ERR_NOSUCHNICK);
+			//}
 			if (arguments.size() == 1) return (ERR_NOTEXTTOSEND);
 		} break;
 		case JOIN: {
 			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
-
+			// TODO: handle more errors
 		} break;
 		case MODE: {
 
@@ -85,11 +90,9 @@ std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::s
 
 	tmp_cmd.setCommandName(tokens[0]);
 
-	// Build arguments but treat the first token that starts with ':' as the start of the trailing parameter
 	std::vector<std::string> args;
 	for (size_t i = 1; i < tokens.size(); ++i) {
 		if (!tokens[i].empty() && tokens[i][0] == ':') {
-			// trailing parameter: join the current token (without leading ':') and all remaining tokens with spaces
 			std::string trailing = tokens[i].substr(1);
 			for (size_t j = i + 1; j < tokens.size(); ++j) {
 				trailing += " " + tokens[j];
