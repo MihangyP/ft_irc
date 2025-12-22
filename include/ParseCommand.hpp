@@ -7,6 +7,7 @@
 # include "IrcLog.hpp"
 # include "constants.h"
 # include "ft_irc.h"
+# include "Channel.hpp"
 
 class	ParseCommand
 {
@@ -14,7 +15,7 @@ class	ParseCommand
 		ParseCommand(void);
 		~ParseCommand(void);
 	public:
-		static std::string	parseCmd(const std::string& line, Command& cmd, std::string password, std::vector<IrcClient> clients, int client_index);
+		static std::string	parseCmd(const std::string& line, Command& cmd, std::string password, std::vector<IrcClient> clients, int client_index, std::vector<Channel>& channels);
 };
 
 #endif // __PARSE_COMMAND_HPP__

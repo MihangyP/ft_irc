@@ -28,7 +28,16 @@ bool	noSuchNick(std::string nickname, std::vector<IrcClient> clients)
 	return (true);
 }
 
-std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments, std::string password, std::vector<IrcClient> clients, int client_index)
+bool noSuckChannel(std::string name, std::vector<Channel> &channels)
+{
+	for (size_t i = 0; i < channels.size(); ++i) {
+		if (channels[i].getName() == name)
+			return (false);
+	}
+	return (true);
+}
+
+std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments, std::string password, std::vector<IrcClient> clients, int client_index, std::vector<Channel>& channels)
 {
 	switch (cmd_tag) {
 		case PASS: {
@@ -56,13 +65,14 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			// TODO: manage other errors
 		} break;
 		case PRIVMSG: {
+			// TODO: manage error params (e.g. no ':' to enter a msg)
 			if (!arguments.size()) return (ERR_NORECIPIENT);
 			std::string name = arguments[0];
-			//if (arguments[0][0] == "#" && ) {
-
-			//} else {
+			if (name[0] == '#') {
+				if (noSuckChannel(name, channels)) return (ERR_NOSUCHNICK);
+			} else {
 				if (noSuchNick(name, clients)) return (ERR_NOSUCHNICK);
-			//}
+			}
 			if (arguments.size() == 1) return (ERR_NOTEXTTOSEND);
 		} break;
 		case JOIN: {
@@ -79,7 +89,7 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 	return (SUCCESS);
 }
 
-std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::string password, std::vector<IrcClient> clients, int client_index)
+std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::string password, std::vector<IrcClient> clients, int client_index, std::vector<Channel>& channels)
 {
 	Command	tmp_cmd;
 
@@ -114,7 +124,7 @@ std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::s
 	std::vector<std::string> arguments = tmp_cmd.getArguments();
 
 	t_command command_tag = commandNameToTag(command_name);
-	std::string error = checkCommandError(command_tag, arguments, password, clients, client_index);
+	std::string error = checkCommandError(command_tag, arguments, password, clients, client_index, channels);
 	if (error != SUCCESS) {
 		return (error);		
 	}

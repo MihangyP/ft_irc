@@ -360,7 +360,7 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 	Command cmd;
 	std::string	response;
 
-	std::string status = ParseCommand::parseCmd(line, cmd, _password, _clients, client_index);
+	std::string status = ParseCommand::parseCmd(line, cmd, _password, _clients, client_index, _available_channels);
 	if (status == EMPTY_COMMAND) return ; // Ignore
 	else if (status == ERR_NEEDMOREPARAMS) {
 		response = constructErrorResponse(ERR_NEEDMOREPARAMS, client_index,
