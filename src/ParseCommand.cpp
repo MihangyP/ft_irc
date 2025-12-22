@@ -28,16 +28,16 @@ bool	noSuchNick(std::string nickname, std::vector<IrcClient> clients)
 	return (true);
 }
 
-bool noSuckChannel(std::string name, std::vector<Channel> &channels)
+int noSuchChannel(std::string name, std::vector<Channel> &channels)
 {
 	for (size_t i = 0; i < channels.size(); ++i) {
 		if (channels[i].getName() == name)
-			return (false);
+			return (i);
 	}
-	return (true);
+	return (-1);
 }
 
-std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments, std::string password, std::vector<IrcClient> clients, int client_index, std::vector<Channel>& channels)
+std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments, std::string password, std::vector<IrcClient> clients, int client_index, std::vector<Channel>& channels, t_channel_data& chan_data)
 {
 	switch (cmd_tag) {
 		case PASS: {
@@ -69,7 +69,10 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			if (!arguments.size()) return (ERR_NORECIPIENT);
 			std::string name = arguments[0];
 			if (name[0] == '#') {
-				if (noSuckChannel(name, channels)) return (ERR_NOSUCHNICK);
+				int no_such_channel = noSuchChannel(name, channels);
+				if (no_such_channel == -1) return (ERR_NOSUCHNICK);
+				chan_data.is_channel = true;
+				chan_data.index = no_such_channel;
 			} else {
 				if (noSuchNick(name, clients)) return (ERR_NOSUCHNICK);
 			}
@@ -89,7 +92,7 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 	return (SUCCESS);
 }
 
-std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::string password, std::vector<IrcClient> clients, int client_index, std::vector<Channel>& channels)
+std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::string password, std::vector<IrcClient> clients, int client_index, std::vector<Channel>& channels, t_channel_data& chan_data)
 {
 	Command	tmp_cmd;
 
@@ -124,9 +127,9 @@ std::string	ParseCommand::parseCmd(const std::string& line, Command& cmd, std::s
 	std::vector<std::string> arguments = tmp_cmd.getArguments();
 
 	t_command command_tag = commandNameToTag(command_name);
-	std::string error = checkCommandError(command_tag, arguments, password, clients, client_index, channels);
+	std::string error = checkCommandError(command_tag, arguments, password, clients, client_index, channels, chan_data);
 	if (error != SUCCESS) {
-		return (error);		
+		return (error);
 	}
 	return (SUCCESS);
 }

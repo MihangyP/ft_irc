@@ -279,7 +279,7 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 
 }
 
-void	IrcServer::handleCommand(Command cmd, int client_index)
+void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& chan_data)
 {
 	t_command command_tag = commandNameToTag(cmd.getCommandName());
 	std::vector<std::string> arguments = cmd.getArguments();
@@ -327,7 +327,15 @@ void	IrcServer::handleCommand(Command cmd, int client_index)
 			+ "@" + _clients[client_index].getAddress()
 			+ " PRIVMSG " + nick_to_send
 			+ " :" + message_to_send + "\r\n";
-			sendMessage(_clients[corresponding_client_index], response);
+			if (chan_data.is_channel) {
+				std::vector<IrcClient> members = _available_channels[chan_data.index].getMembers();
+				for (size_t i = 0; i < members.size(); ++i) {
+					int c_index = getCorrespondingClient(members[i].getNickName());
+					sendMessage(_clients[c_index], response);
+				}
+			} else {
+				sendMessage(_clients[corresponding_client_index], response);
+			}
 		} break;
 		case JOIN: {
 			handleJoinCommand(cmd, client_index);
@@ -359,8 +367,11 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 {
 	Command cmd;
 	std::string	response;
+	t_channel_data channel_data;
+	channel_data.is_channel = false;
+	channel_data.index = -1;
 
-	std::string status = ParseCommand::parseCmd(line, cmd, _password, _clients, client_index, _available_channels);
+	std::string status = ParseCommand::parseCmd(line, cmd, _password, _clients, client_index, _available_channels, channel_data);
 	if (status == EMPTY_COMMAND) return ; // Ignore
 	else if (status == ERR_NEEDMOREPARAMS) {
 		response = constructErrorResponse(ERR_NEEDMOREPARAMS, client_index,
@@ -400,7 +411,7 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 					" " + cmd.getArguments()[0] + " :No such nick\r\n"; // or channel
 		sendMessage(_clients[client_index], response);
 	} else if (status == SUCCESS) {
-		handleCommand(cmd, client_index);
+		handleCommand(cmd, client_index, channel_data);
 	}
 }
 

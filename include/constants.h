@@ -5,6 +5,11 @@
 # include <cerrno>
 # include "IrcException.hpp"
 
+typedef struct s_channel_data {
+	bool	is_channel;
+	int		index;
+}	t_channel_data;
+
 typedef enum e_command {
 	PASS,
 	NICK,

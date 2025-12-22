@@ -53,7 +53,7 @@ class	IrcServer {
 		int						alreadyAvailable(std::string name);
 		std::string 			construct_name_list(std::string chan_name);
 		// TODO: put this in a HandleCommand class
-		void		handleCommand(Command cmd, int client_index);
+		void		handleCommand(Command cmd, int client_index, t_channel_data& chan_data);
 		void		handleJoinCommand(Command cmd, int client_index);
 		std::string	constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message, size_t with_cmd_name);
 };
