@@ -12,6 +12,8 @@ class	Channel
 		std::vector<IrcClient>	_members;
 		std::vector<IrcClient>	_operators;
 		std::string				_topic;
+		bool					_has_user_limit;
+		size_t					_user_limit;
 
 	public:
 		Channel(std::string chan_name);
@@ -28,16 +30,20 @@ class	Channel
 		void	removeMember(IrcClient client);
 		void	removeOperator(IrcClient op);
 
+		bool	hasUserLimit(void) const;
+
 
 		std::string				getName(void) const;
 		std::string 			getKey(void) const;
 		std::string				getTopic(void) const;
 		std::vector<IrcClient>	getMembers(void) const;
 		std::vector<IrcClient>	getOperators(void) const;
+		size_t					getUserLimit(void) const;
 
 		void	setName(std::string name);
 		void	setKey(std::string key);
 		void	setTopic(std::string topic);
+		void	setUserLimit(size_t user_limit);
 };
 
 #endif // __CHANNEL_HPP__

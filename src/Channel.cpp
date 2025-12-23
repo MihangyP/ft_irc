@@ -5,6 +5,8 @@ Channel::Channel(std::string chan_name)
 	_name = chan_name;
 	_key = "";
 	_topic = "";
+	_has_user_limit = false;
+	_user_limit = 0;
 }
 
 Channel::Channel(const Channel& other)
@@ -60,6 +62,16 @@ std::string	Channel::getTopic(void) const
 	return (_topic);
 }
 
+size_t	Channel::getUserLimit(void) const
+{
+	return (_user_limit);
+}
+
+bool	Channel::hasUserLimit(void) const
+{
+	return (_has_user_limit);
+}
+
 void	Channel::setName(std::string name)
 {
 	_name = name;
@@ -73,6 +85,11 @@ void	Channel::setKey(std::string key)
 void	Channel::setTopic(std::string topic)
 {
 	_topic = topic;
+}
+
+void	Channel::setUserLimit(size_t user_limit)
+{
+	_user_limit = user_limit;
 }
 
 bool	Channel::isMember(IrcClient client) const
