@@ -13,7 +13,6 @@ int	main(int ac, char **av)
 	if (ac != 3) {
 		usage(av[0]);
 	}
-	// TODO: check if valid port or valid password ?
 	// valid port: 0 to 65535
 	int 		port = std::atoi(av[1]);
 	if (!(0 < port && port < 65535)) {

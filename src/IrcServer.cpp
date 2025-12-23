@@ -340,7 +340,7 @@ void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& cha
 				  + " :" + text + "\r\n";
 
 			if (chan_data.is_channel) {
-				  const std::vector<IrcClient>& members = _available_channels[chan_data.index].getMembers();
+				const std::vector<IrcClient>& members = _available_channels[chan_data.index].getMembers();
 				for (size_t i = 0; i < members.size(); ++i) {
 					int c_index = getCorrespondingClient(members[i].getNickName());
 					if (c_index != client_index)
@@ -361,13 +361,11 @@ void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& cha
 			// TODO: look at operators
 			std::string chan_name = arguments[0];
 			if (arguments.size() == 1) {
-				//:server 332 Mihangy #test :Welcome to the test channel
 				std::string topic = _available_channels[getChanIndex(chan_name)].getTopic();
 				response = ":" SERVER_NAME " " RPL_TOPIC + nick + " " + chan_name +
 							" :" + topic + "\r\n";
 				sendMessage(_clients[client_index], response);
 			} else {
-				//:Mihangy!pierrot@localhost TOPIC #test :test\r\n
 				std::string new_topic = arguments[1];
 				int i = getChanIndex(chan_name);
 				if (new_topic == "") {
@@ -377,7 +375,11 @@ void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& cha
 				}
 				response = ":" + nick + "!" + user + "@localhost TOPIC " + chan_name + " :" + 
 							new_topic + "\r\n";
-				sendMessage(_clients[client_index], response);
+				const std::vector<IrcClient>& members = _available_channels[chan_data.index].getMembers();
+				//for (size_t i = 0; i < members.size(); ++i) {
+					//int c_index = getCorrespondingClient(members[i].getNickName());
+					//sendMessage(_clients[c_index], response);
+				//}
 			}
 		} break;
 		case UNKNOWN: {
