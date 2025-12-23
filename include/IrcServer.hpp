@@ -56,6 +56,11 @@ class	IrcServer {
 		// TODO: put this in a HandleCommand class
 		void		handleCommand(Command cmd, int client_index, t_channel_data& chan_data);
 		void		handleJoinCommand(Command cmd, int client_index);
+		void		handlePartCommand(Command cmd, int client_index);
+		void		handleKickCommand(Command cmd, int client_index);
+		void		handleInviteCommand(Command cmd, int client_index);
+		void		handleModeCommand(Command cmd, int client_index);
+		void		handleTopicCommand(Command cmd, int client_index, t_channel_data& chan_data);
 		std::string	constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message, size_t with_cmd_name);
 };
 

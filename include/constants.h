@@ -18,8 +18,13 @@ typedef enum e_command {
 	CAP,
 	PRIVMSG,
 	JOIN,
+	PART,
+	KICK,
+	INVITE,
 	MODE,
 	TOPIC,
+	PING,
+	PONG,
 	UNKNOWN
 } t_command;
 
@@ -59,6 +64,7 @@ typedef enum e_command {
 # define ERR_BADCHANNELKEY		"475"
 # define ERR_USERNOTINCHANNEL	"441"
 # define ERR_NOTONCHANNEL		"442"
+# define ERR_USERONCHANNEL		"443"
 # define ERR_CHANOPRIVSNEEDED	"482"
 // - INVITE / TOPIC / MODE successes
 # define RPL_TOPIC				"332"

@@ -7,6 +7,8 @@ Channel::Channel(std::string chan_name)
 	_topic = "";
 	_has_user_limit = false;
 	_user_limit = 0;
+	_invite_only = false;
+	_topic_restricted = true; // Default: only operators can change topic
 }
 
 Channel::Channel(const Channel& other)
@@ -16,7 +18,12 @@ Channel::Channel(const Channel& other)
 		_key = other._key;	
 		_members = other._members;	
 		_operators = other._operators;
+		_invited = other._invited;
 		_topic = other._topic;
+		_has_user_limit = other._has_user_limit;
+		_user_limit = other._user_limit;
+		_invite_only = other._invite_only;
+		_topic_restricted = other._topic_restricted;
 	}
 }
 
@@ -27,7 +34,12 @@ Channel& Channel::operator=(const Channel& other)
 		_key = other._key;	
 		_members = other._members;	
 		_operators = other._operators;
+		_invited = other._invited;
 		_topic = other._topic;
+		_has_user_limit = other._has_user_limit;
+		_user_limit = other._user_limit;
+		_invite_only = other._invite_only;
+		_topic_restricted = other._topic_restricted;
 	}
 	return (*this);
 }
@@ -90,6 +102,10 @@ void	Channel::setTopic(std::string topic)
 void	Channel::setUserLimit(size_t user_limit)
 {
 	_user_limit = user_limit;
+	if (user_limit > 0)
+		_has_user_limit = true;
+	else
+		_has_user_limit = false;
 }
 
 bool	Channel::isMember(IrcClient client) const
@@ -144,4 +160,51 @@ void	Channel::removeOperator(IrcClient op)
 	}
 	if (pos != -1)
 		_operators.erase(_operators.begin() + pos);
+}
+
+bool	Channel::isInvited(IrcClient client) const
+{
+	for (size_t i = 0; i < _invited.size(); ++i) {
+		if (_invited[i].getNickName() == client.getNickName())
+			return (true);
+	}
+	return (false);
+}
+
+void	Channel::addInvited(IrcClient client)
+{
+	_invited.push_back(client);
+}
+
+void	Channel::removeInvited(IrcClient client)
+{
+	int pos = -1;
+	for (size_t i = 0; i < _invited.size(); ++i) {
+		if (_invited[i].getNickName() == client.getNickName()) {
+			pos = i;
+			break ;
+		}
+	}
+	if (pos != -1)
+		_invited.erase(_invited.begin() + pos);
+}
+
+bool	Channel::isInviteOnly(void) const
+{
+	return (_invite_only);
+}
+
+bool	Channel::isTopicRestricted(void) const
+{
+	return (_topic_restricted);
+}
+
+void	Channel::setInviteOnly(bool invite_only)
+{
+	_invite_only = invite_only;
+}
+
+void	Channel::setTopicRestricted(bool topic_restricted)
+{
+	_topic_restricted = topic_restricted;
 }
