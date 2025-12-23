@@ -41,12 +41,30 @@ bool	channelHasNoTopic(std::vector<Channel>& channels, const std::string chan_na
 {
 	size_t i = 0;
 	for (; i < channels.size(); ++i) {
-		if (channels[i].getName() == chan_name)
+		if (channels[i].getName() == chan_name) {
+			IrcLog::debug("chan_name: %s", channels[i].getName().c_str());
 			break ;
+		}
 	}
 	if (channels[i].getTopic() == "")
 		return (true);
 	return (false);
+}
+
+bool	notOnChannel(std::vector<IrcClient>& clients, int client_index, std::vector<Channel>& chans, const std::string& chan_name)
+{
+	std::string nick = clients[client_index].getNickName();
+	size_t i = 0;
+	for (;i < chans.size(); ++i) {
+		if (chans[i].getName() == chan_name)
+			break ;
+	}
+	std::vector<IrcClient> members = chans[i].getMembers();
+	for (size_t i = 0; i < members.size(); ++i) {
+		if (members[i].getNickName() == nick)
+			return (false);
+	}
+	return (true);
 }
 
 std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> arguments, std::string password, std::vector<IrcClient> clients, int client_index, std::vector<Channel>& channels, t_channel_data& chan_data)
@@ -100,7 +118,9 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 		case TOPIC: {
 			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
 			std::string chan_name = arguments[0];
-			if (channelHasNoTopic(channels, chan_name)) return (RPL_NOTOPIC);
+			if (notOnChannel(clients, client_index, channels, chan_name)) return (ERR_NOTONCHANNEL);
+			if (arguments.size() == 1 && channelHasNoTopic(channels, chan_name)) return (RPL_NOTOPIC);
+			// TODO: handle ERR_CHANOPRIVSNEEDED
 		} break;
 		case UNKNOWN: {
 			return (ERR_UNKNOWNCOMMAND);

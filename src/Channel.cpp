@@ -70,6 +70,11 @@ void	Channel::setKey(std::string key)
 	_key = key;
 }
 
+void	Channel::setTopic(std::string topic)
+{
+	_topic = topic;
+}
+
 bool	Channel::isMember(IrcClient client) const
 {
 	for (size_t i = 0; i < _members.size(); ++i) {

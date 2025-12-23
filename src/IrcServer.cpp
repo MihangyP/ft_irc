@@ -133,6 +133,8 @@ t_command	commandNameToTag(const std::string& command_name)
 	else if (command_name == "CAP") return (CAP);
 	else if (command_name == "PRIVMSG") return (PRIVMSG);
 	else if (command_name == "JOIN") return (JOIN);
+	else if (command_name == "MODE") return (MODE);
+	else if (command_name == "TOPIC") return (TOPIC);
 	else return (UNKNOWN);
 }
 
@@ -279,6 +281,16 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 
 }
 
+int IrcServer::getChanIndex(const std::string chan_name)
+{
+	int i = 0;
+	for (; i < (int)_available_channels.size(); ++i) {
+		if (_available_channels[i].getName() == chan_name)
+			break ;
+	}
+	return (i);
+}
+
 void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& chan_data)
 {
 	t_command command_tag = commandNameToTag(cmd.getCommandName());
@@ -346,7 +358,27 @@ void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& cha
 			// TODO: Try to understand this command
 		} break;
 		case TOPIC: {
-			// TODO: Try to understand this command
+			// TODO: look at operators
+			std::string chan_name = arguments[0];
+			if (arguments.size() == 1) {
+				//:server 332 Mihangy #test :Welcome to the test channel
+				std::string topic = _available_channels[getChanIndex(chan_name)].getTopic();
+				response = ":" SERVER_NAME " " RPL_TOPIC + nick + " " + chan_name +
+							" :" + topic + "\r\n";
+				sendMessage(_clients[client_index], response);
+			} else {
+				//:Mihangy!pierrot@localhost TOPIC #test :test\r\n
+				std::string new_topic = arguments[1];
+				int i = getChanIndex(chan_name);
+				if (new_topic == "") {
+					_available_channels[i].setTopic("");
+				} else {
+					_available_channels[i].setTopic(new_topic);
+				}
+				response = ":" + nick + "!" + user + "@localhost TOPIC " + chan_name + " :" + 
+							new_topic + "\r\n";
+				sendMessage(_clients[client_index], response);
+			}
 		} break;
 		case UNKNOWN: {
 
@@ -375,6 +407,7 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 	t_channel_data channel_data;
 	channel_data.is_channel = false;
 	channel_data.index = -1;
+	std::string nick = _clients[client_index].getNickName();
 
 	std::string status = ParseCommand::parseCmd(line, cmd, _password, _clients, client_index, _available_channels, channel_data);
 	if (status == EMPTY_COMMAND) return ; // Ignore
@@ -404,21 +437,26 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 					" :Nickname is already in use\r\n";
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NORECIPIENT) {
-		response = ":" SERVER_NAME " " + status + " " + _clients[client_index].getNickName() +
+		response = ":" SERVER_NAME " " + status + " " + nick +
 					" :No recipient	given " + cmd.getCommandName() + "\r\n";
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NOTEXTTOSEND) {
-		response = ":" SERVER_NAME " " + status + " " + _clients[client_index].getNickName() +
+		response = ":" SERVER_NAME " " + status + " " + nick +
 					" :No text to send\r\n";
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NOSUCHNICK) {
-		response = ":" SERVER_NAME " " + status + " " + _clients[client_index].getNickName() +
+		response = ":" SERVER_NAME " " + status + " " + nick +
 					" " + cmd.getArguments()[0] + " :No such nick\r\n"; // or channel
 		sendMessage(_clients[client_index], response);
 	} else if (status == RPL_NOTOPIC) {
 		//:server 331 Mihangy #mychannel :No topic is set
-		response = ":" SERVER_NAME " " + status + " " + _clients[client_index].getNickName() +
+		response = ":" SERVER_NAME " " + status + " " + nick +
 			      " " + cmd.getArguments()[0] + " :No topic is set\r\n";
+		sendMessage(_clients[client_index], response);
+	} else if (status == ERR_NOTONCHANNEL)  {
+		//442 <nick> <channel> :You're not on that channel
+		response = ":" SERVER_NAME " " + status + " " + nick + " " + cmd.getArguments()[0] + 
+					" :You're not on that channel\r\n";
 		sendMessage(_clients[client_index], response);
 	} else if (status == SUCCESS) {
 		handleCommand(cmd, client_index, channel_data);

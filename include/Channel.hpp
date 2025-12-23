@@ -37,6 +37,7 @@ class	Channel
 
 		void	setName(std::string name);
 		void	setKey(std::string key);
+		void	setTopic(std::string topic);
 };
 
 #endif // __CHANNEL_HPP__

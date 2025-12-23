@@ -52,6 +52,7 @@ class	IrcServer {
 		void					addIntoAvailableChannels(Channel chanel);
 		int						alreadyAvailable(std::string name);
 		std::string 			construct_name_list(std::string chan_name);
+		int 					getChanIndex(const std::string chan_name);
 		// TODO: put this in a HandleCommand class
 		void		handleCommand(Command cmd, int client_index, t_channel_data& chan_data);
 		void		handleJoinCommand(Command cmd, int client_index);
