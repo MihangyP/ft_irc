@@ -148,21 +148,35 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 // RFC 2812: PART requires registration
 			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
+			std::string chan_name = arguments[0];
+			if (chan_name.empty() || chan_name[0] != '#') return (ERR_NOSUCHCHANNEL);
+			if (notOnChannel(clients, client_index, channels, chan_name)) return (ERR_NOTONCHANNEL);
 		} break;
 		case KICK: {
 // RFC 2812: KICK requires registration
 			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (arguments.size() < 2) return (ERR_NEEDMOREPARAMS);
+			std::string chan_name = arguments[0];
+			if (chan_name.empty() || chan_name[0] != '#') return (ERR_NOSUCHCHANNEL);
+			if (notOnChannel(clients, client_index, channels, chan_name)) return (ERR_NOTONCHANNEL);
 		} break;
 		case INVITE: {
 // RFC 2812: INVITE requires registration
 			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (arguments.size() < 2) return (ERR_NEEDMOREPARAMS);
+			std::string chan_name = arguments[1];
+			if (chan_name.empty() || chan_name[0] != '#') return (ERR_NOSUCHCHANNEL);
+			if (notOnChannel(clients, client_index, channels, chan_name)) return (ERR_NOTONCHANNEL);
 		} break;
 		case MODE: {
 // RFC 2812: MODE requires registration
 			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
+			std::string target = arguments[0];
+			// If MODE is for a channel, check if user is on the channel
+			if (!target.empty() && target[0] == '#') {
+				if (notOnChannel(clients, client_index, channels, target)) return (ERR_NOTONCHANNEL);
+			}
 		} break;
 		case TOPIC: {
 // RFC 2812: TOPIC requires registration
@@ -178,8 +192,14 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 		case NAMES: {
 			// NAMES command - can be used without parameters to list all channels
 			// or with channel names to list specific channels
-			// No validation needed - command handles non-existent channels
 			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
+			// If a specific channel is requested, check if user is on it
+			if (arguments.size() > 0) {
+				std::string chan_name = arguments[0];
+				if (!chan_name.empty() && chan_name[0] == '#') {
+					if (notOnChannel(clients, client_index, channels, chan_name)) return (ERR_NOTONCHANNEL);
+				}
+			}
 		} break;
 		case PING: {
 			// PING is allowed even before registration

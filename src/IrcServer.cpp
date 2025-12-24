@@ -434,20 +434,44 @@ void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& cha
 		case QUIT: {
 			std::string quit_message = "Bye";
 			if (arguments.size()) quit_message = arguments[0];
-			response = ":" + nick + "!" + user + "@localhost QUIT :" + quit_message + "\r\n";
 			
-			// Send QUIT message to all channels the user is in
-			for (size_t i = 0; i < _available_channels.size(); ++i) {
-				if (_available_channels[i].isMember(_clients[client_index])) {
-					const std::vector<IrcClient>& members = _available_channels[i].getMembers();
-					for (size_t j = 0; j < members.size(); ++j) {
-						int c_index = getCorrespondingClient(members[j].getNickName());
-						if (c_index >= 0) {
-							sendMessage(_clients[c_index], response);
+			// Build QUIT message only if user has nick/user (for notifying others)
+			std::string response;
+			if (!nick.empty() && !user.empty()) {
+				response = ":" + nick + "!" + user + "@localhost QUIT :" + quit_message + "\r\n";
+			}
+			
+			// Send QUIT message to all OTHER members in channels the user is in
+			if (!response.empty()) {
+				std::vector<int> notified_clients; // Track clients already notified to avoid duplicates
+				for (size_t i = 0; i < _available_channels.size(); ++i) {
+					if (_available_channels[i].isMember(_clients[client_index])) {
+						const std::vector<IrcClient>& members = _available_channels[i].getMembers();
+						for (size_t j = 0; j < members.size(); ++j) {
+							int c_index = getCorrespondingClient(members[j].getNickName());
+							// Don't send to the quitting client and avoid duplicates
+							if (c_index >= 0 && c_index != client_index) {
+								// Check if we already notified this client
+								bool already_notified = false;
+								for (size_t k = 0; k < notified_clients.size(); ++k) {
+									if (notified_clients[k] == c_index) {
+										already_notified = true;
+										break;
+									}
+								}
+								if (!already_notified) {
+									sendMessage(_clients[c_index], response);
+									notified_clients.push_back(c_index);
+								}
+							}
 						}
 					}
 				}
 			}
+			
+			// Send ERROR to the quitting client before closing
+			std::string error_msg = "ERROR :Closing Link: localhost (Client Quit)\r\n";
+			sendMessage(_clients[client_index], error_msg);
 			
 			disconnectClient(_clients[client_index].getFd());
 			return ;
