@@ -1,4 +1,5 @@
 #include "ParseCommand.hpp"
+#include "ft_irc.h"
 
 ParseCommand::ParseCommand(void)
 {
@@ -10,10 +11,15 @@ ParseCommand::~ParseCommand(void)
 
 }
 
-bool	nicknameInUse(std::string nickname, std::vector<IrcClient> clients)
+bool	nicknameInUse(std::string nickname, std::vector<IrcClient> clients, int exclude_index)
 {
 	for (size_t i = 0; i < clients.size(); ++i) {
-		if (clients[i].registered && clients[i].getNickName() == nickname)
+		// Skip the client who is trying to change their nickname
+		if (exclude_index >= 0 && (int)i == exclude_index)
+			continue;
+		// Check both registered clients AND clients who have already set a nickname
+		// This prevents nickname collisions during registration phase
+		if (!clients[i].getNickName().empty() && irc_iequal(clients[i].getNickName(), nickname))
 			return (true);
 	}
 	return (false);
@@ -22,7 +28,7 @@ bool	nicknameInUse(std::string nickname, std::vector<IrcClient> clients)
 bool	noSuchNick(std::string nickname, std::vector<IrcClient> clients)
 {
 	for (size_t i = 0; i < clients.size(); ++i) {
-		if (clients[i].registered && clients[i].getNickName() == nickname)
+		if (clients[i].registered && irc_iequal(clients[i].getNickName(), nickname))
 			return (false);
 	}
 	return (true);
@@ -31,7 +37,7 @@ bool	noSuchNick(std::string nickname, std::vector<IrcClient> clients)
 int noSuchChannel(std::string name, std::vector<Channel> &channels)
 {
 	for (size_t i = 0; i < channels.size(); ++i) {
-		if (channels[i].getName() == name)
+		if (irc_iequal(channels[i].getName(), name))
 			return (i);
 	}
 	return (-1);
@@ -40,7 +46,7 @@ int noSuchChannel(std::string name, std::vector<Channel> &channels)
 bool	channelHasNoTopic(std::vector<Channel>& channels, const std::string chan_name)
 {
 	for (size_t i = 0; i < channels.size(); ++i) {
-		if (channels[i].getName() == chan_name) {
+		if (irc_iequal(channels[i].getName(), chan_name)) {
 			IrcLog::debug("chan_name: %s", channels[i].getName().c_str());
 			return (channels[i].getTopic() == "");
 		}
@@ -56,7 +62,7 @@ bool	notOnChannel(std::vector<IrcClient>& clients, int client_index, std::vector
 	// Find the channel
 	int chan_index = -1;
 	for (size_t i = 0; i < chans.size(); ++i) {
-		if (chans[i].getName() == chan_name) {
+		if (irc_iequal(chans[i].getName(), chan_name)) {
 			chan_index = i;
 			break;
 		}
@@ -69,7 +75,7 @@ bool	notOnChannel(std::vector<IrcClient>& clients, int client_index, std::vector
 	// Check if user is in the channel
 	std::vector<IrcClient> members = chans[chan_index].getMembers();
 	for (size_t i = 0; i < members.size(); ++i) {
-		if (members[i].getNickName() == nick)
+		if (irc_iequal(members[i].getNickName(), nick))
 			return (false);
 	}
 	return (true);
@@ -86,7 +92,8 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 		} break;
 		case NICK: {
 			if (arguments.size() != 1) return (ERR_NONICKNAMEGIVEN);
-			if (clients[client_index].registered) return(ERR_ALREADYREGISTERED);
+			// Note: Users CAN change their nickname after registration (RFC 2812)
+			// So we don't check for ERR_ALREADYREGISTERED here
 			if (arguments[0].empty()) return (ERR_NONICKNAMEGIVEN);
 			if (arguments[0].size() > 9) return (ERR_ERRONEUSSNICKNAME);
 			// Check for invalid characters in nickname
@@ -97,7 +104,8 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 					return (ERR_ERRONEUSSNICKNAME);
 				}
 			}
-			if (nicknameInUse(arguments[0], clients)) return (ERR_NICKNAMEINUSE);
+			// Check if nickname is already in use (excluding current client)
+			if (nicknameInUse(arguments[0], clients, client_index)) return (ERR_NICKNAMEINUSE);
 		} break;
 		case USER: {
 			// USER <username> <hostname> <servername> <realname>
@@ -115,6 +123,8 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			// TODO: manage other errors
 		} break;
 		case PRIVMSG: {
+// RFC 2812: PRIVMSG requires registration
+			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			// TODO: manage error params (e.g. no ':' to enter a msg)
 			if (!arguments.size()) return (ERR_NORECIPIENT);
 			std::string name = arguments[0];
@@ -129,22 +139,34 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			if (arguments.size() == 1) return (ERR_NOTEXTTOSEND);
 		} break;
 		case JOIN: {
+// RFC 2812: JOIN requires registration
+			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
 			// TODO: handle more errors
 		} break;
 		case PART: {
+// RFC 2812: PART requires registration
+			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
 		} break;
 		case KICK: {
+// RFC 2812: KICK requires registration
+			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (arguments.size() < 2) return (ERR_NEEDMOREPARAMS);
 		} break;
 		case INVITE: {
+// RFC 2812: INVITE requires registration
+			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (arguments.size() < 2) return (ERR_NEEDMOREPARAMS);
 		} break;
 		case MODE: {
+// RFC 2812: MODE requires registration
+			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
 		} break;
 		case TOPIC: {
+// RFC 2812: TOPIC requires registration
+			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 			if (!arguments.size()) return (ERR_NEEDMOREPARAMS);
 			std::string chan_name = arguments[0];
 			// Validate channel name format
@@ -152,6 +174,12 @@ std::string	checkCommandError(t_command cmd_tag, std::vector<std::string> argume
 			if (notOnChannel(clients, client_index, channels, chan_name)) return (ERR_NOTONCHANNEL);
 			if (arguments.size() == 1 && channelHasNoTopic(channels, chan_name)) return (RPL_NOTOPIC);
 			// TODO: handle ERR_CHANOPRIVSNEEDED
+		} break;
+		case NAMES: {
+			// NAMES command - can be used without parameters to list all channels
+			// or with channel names to list specific channels
+			// No validation needed - command handles non-existent channels
+			if (!clients[client_index].registered) return (ERR_NOTREGISTERED);
 		} break;
 		case PING: {
 			// PING is allowed even before registration

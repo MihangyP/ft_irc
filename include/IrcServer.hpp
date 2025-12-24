@@ -26,7 +26,7 @@
 class	IrcServer {
 	private:
 		static bool					signal;
-		size_t						_port;
+		unsigned long				_port;
 		std::string 				_password;
 		int							_server_fd;
 		std::vector<IrcClient>		_clients;
@@ -34,7 +34,7 @@ class	IrcServer {
 		std::vector<Channel>		_available_channels;
 
 	public:
-		IrcServer(size_t port, std::string password);
+		IrcServer(unsigned long port, std::string password);
 		~IrcServer(void);
 
 		static void				signalHandler(int signum);
@@ -47,7 +47,7 @@ class	IrcServer {
 		void					disconnectClient(int fd);
 		void					parseCommand(std::string line, int client_index);
 		void					tryToRegister(int client_index);
-		size_t 					getCorrespondingClient(std::string nickname);
+		int 					getCorrespondingClient(std::string nickname);
 		std::vector<Channel>	getAvailableChannels(void) const;
 		void					addIntoAvailableChannels(Channel chanel);
 		int						alreadyAvailable(std::string name);
@@ -61,6 +61,7 @@ class	IrcServer {
 		void		handleInviteCommand(Command cmd, int client_index);
 		void		handleModeCommand(Command cmd, int client_index);
 		void		handleTopicCommand(Command cmd, int client_index, t_channel_data& chan_data);
+		void		handleNamesCommand(Command cmd, int client_index);
 		std::string	constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message, size_t with_cmd_name);
 };
 

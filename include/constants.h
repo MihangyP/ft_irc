@@ -23,6 +23,7 @@ typedef enum e_command {
 	INVITE,
 	MODE,
 	TOPIC,
+	NAMES,
 	PING,
 	PONG,
 	UNKNOWN
@@ -33,7 +34,7 @@ typedef enum e_command {
 
 // constant_values
 # define SERVER_NAME "ft_irc"
-# define MAX_MESSAGE_SIZE 1024
+# define MAX_MESSAGE_SIZE 512  // RFC 2812: max 512 chars including CR-LF
 # define EMPTY_COMMAND ""
 # define SUCCESS "SUCCESS"
 

@@ -1,7 +1,7 @@
 NAME = ircserv
 FILES = ft_irc.cpp IrcServer.cpp IrcClient.cpp IrcException.cpp \
 		Command.cpp StringHelper.cpp IrcLog.cpp ParseCommand.cpp \
-		Channel.cpp
+		Channel.cpp utils.cpp
 SRC_FILES = $(addprefix src/, $(FILES))
 HEADERS = ft_irc.h constants.h IrcServer.hpp IrcClient.hpp IrcException.hpp \
 		  Command.hpp StringHelper.hpp IrcLog.hpp ParseCommand.hpp \

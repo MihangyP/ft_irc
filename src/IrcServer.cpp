@@ -1,4 +1,5 @@
 #include "IrcServer.hpp"
+#include "ft_irc.h"
 
 bool IrcServer::signal = false;
 
@@ -9,7 +10,7 @@ void	IrcServer::signalHandler(int signum)
 	IrcServer::signal = true;
 }
 
-IrcServer::IrcServer(size_t port, std::string password)
+IrcServer::IrcServer(unsigned long port, std::string password)
 {
 	_server_fd = -1;
 	_port = port;
@@ -65,12 +66,44 @@ void sendMessage(const IrcClient& client, const std::string& message)
 
 void	IrcServer::disconnectClient(int fd)
 {
+	// Find the client
+	int client_index = -1;
+	
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i].getFd() == fd) {
+			client_index = i;
+			break;
+		}
+	}
+	
+	// Remove client from all channels
+	if (client_index != -1) {
+		for (size_t i = 0; i < _available_channels.size(); ) {
+			if (_available_channels[i].isMember(_clients[client_index])) {
+				_available_channels[i].removeMember(_clients[client_index]);
+				_available_channels[i].removeOperator(_clients[client_index]);
+				
+				// Delete channel if empty (no members left)
+				if (_available_channels[i].getMembers().empty()) {
+					IrcLog::info("Channel %s deleted (no members left after disconnect)", 
+								_available_channels[i].getName().c_str());
+					_available_channels.erase(_available_channels.begin() + i);
+					continue; // Don't increment i, we just removed an element
+				}
+			}
+			++i;
+		}
+	}
+	
+	// Remove client from client list
 	for (size_t i = 0; i < _clients.size(); ++i) {
 		if (_clients[i].getFd() == fd) {
 			_clients.erase(_clients.begin() + i);
 			break ;
 		}
 	}
+	
+	// Remove from poll fds
 	for (size_t i = 0; i < _fds.size(); ++i) {
 		if (_fds[i].fd == fd) {
 			_fds.erase(_fds.begin() + i);
@@ -138,27 +171,26 @@ t_command	commandNameToTag(const std::string& command_name)
 	else if (command_name == "INVITE") return (INVITE);
 	else if (command_name == "MODE") return (MODE);
 	else if (command_name == "TOPIC") return (TOPIC);
+	else if (command_name == "NAMES") return (NAMES);
 	else if (command_name == "PING") return (PING);
 	else if (command_name == "PONG") return (PONG);
 	else return (UNKNOWN);
 }
 
-size_t 	IrcServer::getCorrespondingClient(std::string nickname)
+int 	IrcServer::getCorrespondingClient(std::string nickname)
 {
-	size_t	client_index = 0;
 	for (size_t i = 0; i < _clients.size(); ++i) {
-		if (_clients[i].getNickName() == nickname) {
-			client_index = i;
-			break;
+		if (irc_iequal(_clients[i].getNickName(), nickname)) {
+			return (int)i;
 		}
 	}
-	return (client_index);
+	return -1;  // Client not found
 }
 
 int	IrcServer::alreadyAvailable(std::string name)
 {
 	for (size_t i = 0; i < _available_channels.size(); ++i) {
-		if (_available_channels[i].getName() == name)
+		if (irc_iequal(_available_channels[i].getName(), name))
 			return (i);
 	}
 	return (-1);	
@@ -168,7 +200,7 @@ std::string IrcServer::construct_name_list(std::string chan_name)
 {
 	int chan_index = -1;
 	for (int i = 0; i < (int)_available_channels.size(); ++i) {
-		if (_available_channels[i].getName() == chan_name) {
+		if (irc_iequal(_available_channels[i].getName(), chan_name)) {
 			chan_index = i;
 			break;
 		}
@@ -278,6 +310,9 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 				sendMessage(_clients[client_index], response);
 			}
 		} else { // join a channel
+			// Check if channel is empty (all members left) - if so, make this user operator
+			bool is_empty_channel = _available_channels[found].getMembers().empty();
+			
 			// Check channel key
 			if (_available_channels[found].getKey() != "") {
 				std::string provided_key = (i < keys.size()) ? keys[i] : "";
@@ -324,6 +359,13 @@ void	IrcServer::handleJoinCommand(Command cmd, int client_index)
 
 			// Add member to channel
 			_available_channels[found].addMember(_clients[client_index]);
+			
+			// If channel was empty, make this user operator (recreating channel)
+			if (is_empty_channel) {
+				_available_channels[found].addOperator(_clients[client_index]);
+				IrcLog::info("User %s became operator of recreated channel %s", nick.c_str(), channels[i].c_str());
+			}
+			
 			// Remove from invited list if was invited
 			_available_channels[found].removeInvited(_clients[client_index]);
 
@@ -393,7 +435,20 @@ void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& cha
 			std::string quit_message = "Bye";
 			if (arguments.size()) quit_message = arguments[0];
 			response = ":" + nick + "!" + user + "@localhost QUIT :" + quit_message + "\r\n";
-			sendMessage(_clients[client_index], response);
+			
+			// Send QUIT message to all channels the user is in
+			for (size_t i = 0; i < _available_channels.size(); ++i) {
+				if (_available_channels[i].isMember(_clients[client_index])) {
+					const std::vector<IrcClient>& members = _available_channels[i].getMembers();
+					for (size_t j = 0; j < members.size(); ++j) {
+						int c_index = getCorrespondingClient(members[j].getNickName());
+						if (c_index >= 0) {
+							sendMessage(_clients[c_index], response);
+						}
+					}
+				}
+			}
+			
 			disconnectClient(_clients[client_index].getFd());
 			return ;
 		} break;
@@ -421,12 +476,14 @@ void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& cha
 				const std::vector<IrcClient>& members = _available_channels[chan_data.index].getMembers();
 				for (size_t i = 0; i < members.size(); ++i) {
 					int c_index = getCorrespondingClient(members[i].getNickName());
-					if (c_index != client_index)
+					if (c_index >= 0 && c_index != client_index)
 						sendMessage(_clients[c_index], response);
 				}
 			} else {
-				  size_t target_index = getCorrespondingClient(target);
-				  sendMessage(_clients[target_index], response);
+				int target_index = getCorrespondingClient(target);
+				if (target_index >= 0) {
+					sendMessage(_clients[target_index], response);
+				}
 			}
 		} break;
 		case JOIN: {
@@ -446,6 +503,9 @@ void	IrcServer::handleCommand(Command cmd, int client_index, t_channel_data& cha
 		} break;
 		case TOPIC: {
 			handleTopicCommand(cmd, client_index, chan_data);
+		} break;
+		case NAMES: {
+			handleNamesCommand(cmd, client_index);
 		} break;
 		case PING: {
 			// Respond to PING with PONG
@@ -508,9 +568,15 @@ void	IrcServer::parseCommand(std::string line, int client_index)
 		response = constructErrorResponse(ERR_ERRONEUSSNICKNAME, client_index,
 				cmd.getCommandName(), "Erroneous nickname", WITHOUT_COMMAND_NAME);
 		sendMessage(_clients[client_index], response);
+	} else if (status == ERR_NOTREGISTERED) {
+		response = constructErrorResponse(ERR_NOTREGISTERED, client_index,
+				cmd.getCommandName(), "You have not registered", WITHOUT_COMMAND_NAME);
+		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NICKNAMEINUSE) {
-		response = ":" SERVER_NAME " " + status + " " + cmd.getArguments()[0] +
-					" :Nickname is already in use\r\n";
+		// RFC 2812: :server 433 <current_nick> <attempted_nick> :Nickname is already in use
+		std::string current_nick = nick.empty() ? "*" : nick;
+		response = ":" SERVER_NAME " " + status + " " + current_nick + " " + 
+					cmd.getArguments()[0] + " :Nickname is already in use\r\n";
 		sendMessage(_clients[client_index], response);
 	} else if (status == ERR_NORECIPIENT) {
 		response = ":" SERVER_NAME " " + status + " " + nick +
@@ -556,6 +622,16 @@ void	IrcServer::readData(int fd)
 				break ;
 		}
 		_clients[i].input_buffer.append(message);
+		
+		// RFC 2812: Limit input buffer to prevent overflow (max 512 chars per message)
+		if (_clients[i].input_buffer.size() > 512) {
+			// If buffer exceeds 512 and no newline found, discard excess
+			size_t newline_pos = _clients[i].input_buffer.find("\n");
+			if (newline_pos == std::string::npos || newline_pos > 512) {
+				_clients[i].input_buffer.clear();
+			}
+		}
+		
 		size_t pos = _clients[i].input_buffer.find("\n");
 		while (pos != std::string::npos) {
 			std::string line = _clients[i].input_buffer.substr(0, pos);
@@ -670,6 +746,12 @@ void	IrcServer::handlePartCommand(Command cmd, int client_index)
 			// Remove client from channel
 			_available_channels[chan_index].removeMember(_clients[client_index]);
 			_available_channels[chan_index].removeOperator(_clients[client_index]);
+			
+			// Delete channel if empty (no members left)
+			if (_available_channels[chan_index].getMembers().empty()) {
+				IrcLog::info("Channel %s deleted (no members left)", channels[i].c_str());
+				_available_channels.erase(_available_channels.begin() + chan_index);
+			}
 		}
 	}
 }
@@ -714,7 +796,7 @@ void	IrcServer::handleKickCommand(Command cmd, int client_index)
 	int target_index = getCorrespondingClient(target_nick);
 	
 	// Check if trying to kick themselves
-	if (target_nick == nick) {
+	if (irc_iequal(target_nick, nick)) {
 		std::string response = ":" SERVER_NAME " " ERR_USERNOTINCHANNEL " " + nick +
 							   " " + target_nick + " " + chan_name + " :You cannot kick yourself\r\n";
 		sendMessage(_clients[client_index], response);
@@ -740,6 +822,12 @@ void	IrcServer::handleKickCommand(Command cmd, int client_index)
 	// Remove target from channel
 	_available_channels[chan_index].removeMember(_clients[target_index]);
 	_available_channels[chan_index].removeOperator(_clients[target_index]);
+
+	// Delete channel if no members left
+	if (_available_channels[chan_index].getMembers().empty()) {
+		IrcLog::info("Channel %s deleted (no members left after kick)", chan_name.c_str());
+		_available_channels.erase(_available_channels.begin() + chan_index);
+	}
 }
 
 void	IrcServer::handleInviteCommand(Command cmd, int client_index)
@@ -897,7 +985,7 @@ void	IrcServer::handleModeCommand(Command cmd, int client_index)
 					// Find the target client by nickname
 					int target_index = -1;
 					for (size_t j = 0; j < _clients.size(); ++j) {
-						if (_clients[j].getNickName() == target_nick) {
+						if (irc_iequal(_clients[j].getNickName(), target_nick)) {
 							target_index = j;
 							break;
 						}
@@ -905,7 +993,7 @@ void	IrcServer::handleModeCommand(Command cmd, int client_index)
 					// Check if target exists and is member of the channel
 					if (target_index != -1 && _available_channels[chan_index].isMember(_clients[target_index])) {
 						// Prevent removing operator privilege from themselves
-						if (!adding && target_nick == nick) {
+						if (!adding && irc_iequal(target_nick, nick)) {
 							// Silently ignore or send error
 							std::string response = ":" SERVER_NAME " " ERR_CHANOPRIVSNEEDED " " + nick +
 												   " " + target + " :You cannot remove your own operator status\r\n";
@@ -1015,6 +1103,56 @@ void	IrcServer::handleTopicCommand(Command cmd, int client_index, t_channel_data
 		for (size_t i = 0; i < members.size(); ++i) {
 			int c_index = getCorrespondingClient(members[i].getNickName());
 			sendMessage(_clients[c_index], response);
+		}
+	}
+}
+
+void	IrcServer::handleNamesCommand(Command cmd, int client_index)
+{
+	std::vector<std::string> arguments = cmd.getArguments();
+	std::string nick = _clients[client_index].getNickName();
+	std::string response;
+	
+	// If no channel specified, list all channels
+	if (arguments.size() == 0) {
+		for (size_t i = 0; i < _available_channels.size(); ++i) {
+			std::string chan_name = _available_channels[i].getName();
+			std::string names_list = construct_name_list(chan_name);
+			
+			// RPL_NAMREPLY (353): = for public channels
+			response = ":" SERVER_NAME " " RPL_NAMREPLY " " + nick + " = " + 
+					   chan_name + " :" + names_list + "\r\n";
+			sendMessage(_clients[client_index], response);
+			
+			// RPL_ENDOFNAMES (366)
+			response = ":" SERVER_NAME " " RPL_ENDOFNAMES " " + nick + " " + 
+					   chan_name + " :End of /NAMES list\r\n";
+			sendMessage(_clients[client_index], response);
+		}
+	} else {
+		// List specific channel(s)
+		for (size_t i = 0; i < arguments.size(); ++i) {
+			std::string chan_name = arguments[i];
+			int chan_index = getChanIndex(chan_name);
+			
+			if (chan_index == -1) {
+				// Channel doesn't exist - still send end of names
+				response = ":" SERVER_NAME " " RPL_ENDOFNAMES " " + nick + " " + 
+						   chan_name + " :End of /NAMES list\r\n";
+				sendMessage(_clients[client_index], response);
+			} else {
+				std::string names_list = construct_name_list(chan_name);
+				
+				// RPL_NAMREPLY (353)
+				response = ":" SERVER_NAME " " RPL_NAMREPLY " " + nick + " = " + 
+						   chan_name + " :" + names_list + "\r\n";
+				sendMessage(_clients[client_index], response);
+				
+				// RPL_ENDOFNAMES (366)
+				response = ":" SERVER_NAME " " RPL_ENDOFNAMES " " + nick + " " + 
+						   chan_name + " :End of /NAMES list\r\n";
+				sendMessage(_clients[client_index], response);
+			}
 		}
 	}
 }

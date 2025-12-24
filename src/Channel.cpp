@@ -1,4 +1,5 @@
 #include "Channel.hpp"
+#include "ft_irc.h"
 
 Channel::Channel(std::string chan_name)
 {
@@ -111,7 +112,7 @@ void	Channel::setUserLimit(size_t user_limit)
 bool	Channel::isMember(IrcClient client) const
 {
 	for (size_t i = 0; i < _members.size(); ++i) {
-		if (_members[i].getNickName() == client.getNickName())
+		if (irc_iequal(_members[i].getNickName(), client.getNickName()))
 			return (true);
 	}
 	return (false);
@@ -120,7 +121,7 @@ bool	Channel::isMember(IrcClient client) const
 bool	Channel::isOperator(IrcClient op) const
 {
 	for (size_t i = 0; i < _operators.size(); ++i) {
-		if (_operators[i].getNickName() == op.getNickName())
+		if (irc_iequal(_operators[i].getNickName(), op.getNickName()))
 			return (true);
 	}
 	return (false);
@@ -140,7 +141,7 @@ void	Channel::removeMember(IrcClient client)
 {
 	int pos = -1;
 	for (size_t i = 0; i < _members.size(); ++i) {
-		if (_members[i].getNickName() == client.getNickName()) {
+		if (irc_iequal(_members[i].getNickName(), client.getNickName())) {
 			pos = i;
 			break ;
 		}
@@ -153,7 +154,7 @@ void	Channel::removeOperator(IrcClient op)
 {
 	int pos = -1;
 	for (size_t i = 0; i < _operators.size(); ++i) {
-		if (_operators[i].getNickName() == op.getNickName()) {
+		if (irc_iequal(_operators[i].getNickName(), op.getNickName())) {
 			pos = i;
 			break ;
 		}
@@ -165,7 +166,7 @@ void	Channel::removeOperator(IrcClient op)
 bool	Channel::isInvited(IrcClient client) const
 {
 	for (size_t i = 0; i < _invited.size(); ++i) {
-		if (_invited[i].getNickName() == client.getNickName())
+		if (irc_iequal(_invited[i].getNickName(), client.getNickName()))
 			return (true);
 	}
 	return (false);
@@ -180,7 +181,7 @@ void	Channel::removeInvited(IrcClient client)
 {
 	int pos = -1;
 	for (size_t i = 0; i < _invited.size(); ++i) {
-		if (_invited[i].getNickName() == client.getNickName()) {
+		if (irc_iequal(_invited[i].getNickName(), client.getNickName())) {
 			pos = i;
 			break ;
 		}
