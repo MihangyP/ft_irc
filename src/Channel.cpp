@@ -9,7 +9,7 @@ Channel::Channel(std::string chan_name)
 	_has_user_limit = false;
 	_user_limit = 0;
 	_invite_only = false;
-	_topic_restricted = true; // Default: only operators can change topic
+	_topic_restricted = true;
 }
 
 Channel::Channel(const Channel& other)

@@ -20,8 +20,7 @@
 
 
 // TODO: search what is the appropriate BACKLOG value
-// TODO: make Client just a struct (class suckssss)
-# define BACKLOG 69
+# define BACKLOG 128
 
 class	IrcServer {
 	private:
@@ -60,7 +59,7 @@ class	IrcServer {
 		void		handleKickCommand(Command cmd, int client_index);
 		void		handleInviteCommand(Command cmd, int client_index);
 		void		handleModeCommand(Command cmd, int client_index);
-		void		handleTopicCommand(Command cmd, int client_index, t_channel_data& chan_data);
+		void		handleTopicCommand(Command cmd, int client_index);
 		void		handleNamesCommand(Command cmd, int client_index);
 		std::string	constructErrorResponse(std::string status, int client_index, std::string command_name, std::string message, size_t with_cmd_name);
 };

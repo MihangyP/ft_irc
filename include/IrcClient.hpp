@@ -12,13 +12,9 @@ class	IrcClient {
 		std::string				_address;
 		std::string				_nickname;
 		std::string				_username;
-		//// TODO: what means _unused ?
-		//std::string				_unused;
-		//std::string				_realname;
+	
 
 	public:
-		//std::vector<Channel>	channels;
-		//int						_mode;
 		std::string				input_buffer;
 		bool					authenticated;
 		bool					registered;

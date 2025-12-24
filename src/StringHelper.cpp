@@ -43,7 +43,6 @@ std::string StringHelper::toString(int number)
 	return (string_stream.str());
 }
 
-// TODO: manage only spaces (IT SEGGGG)
 StringHelper 				StringHelper::trim(void)
 {
 	int	start = 0;

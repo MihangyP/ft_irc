@@ -1,8 +1,6 @@
 #ifndef __CONSTANTS_H__
 # define __CONSTANTS_H__
 
-# include <cstring>
-# include <cerrno>
 # include "IrcException.hpp"
 
 typedef struct s_channel_data {
@@ -34,7 +32,7 @@ typedef enum e_command {
 
 // constant_values
 # define SERVER_NAME "ft_irc"
-# define MAX_MESSAGE_SIZE 512  // RFC 2812: max 512 chars including CR-LF
+# define MAX_MESSAGE_SIZE 512
 # define EMPTY_COMMAND ""
 # define SUCCESS "SUCCESS"
 

@@ -9,9 +9,8 @@ HEADERS = ft_irc.h constants.h IrcServer.hpp IrcClient.hpp IrcException.hpp \
 HEADER_FILES = $(addprefix include/, $(HEADERS))
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 CPPC = c++
-GDB ?= -g
-STD ?= -std=c++98
-CPPFLAGS = -Wall -Wextra $(GDB) $(STD) # -Werror
+STD = -std=c++98
+CPPFLAGS = -Wall -Wextra -Werror $(STD)
 INCLUDING = -I./include
 RM = rm -rf
 
