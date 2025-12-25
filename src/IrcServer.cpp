@@ -47,9 +47,6 @@ void	IrcServer::addClient(void)
 	client_fd = accept(_server_fd, (struct sockaddr *)&addr, &addr_size);
 	if (client_fd == -1)
 		IRC_EXCEPTION("Accept failed");
-	int status = fcntl(client_fd, F_SETFL, O_NONBLOCK);
-	if (status == -1)
-		IRC_EXCEPTION("Fcntl failed");
 	poll.fd = client_fd;
 	poll.events = POLLIN;
 	poll.revents = 0;
