@@ -707,9 +707,6 @@ void	IrcServer::createSocket(void)
 	status = setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt);
 	if (status == -1)
 		IRC_EXCEPTION("Setsockopt failed");
-	status = fcntl(_server_fd, F_SETFL, O_NONBLOCK);
-	if (status == -1)
-		IRC_EXCEPTION("Fcntl failed");
 	status = bind(_server_fd, (struct sockaddr *)&addr, sizeof addr);
 	if (status == -1)
 		IRC_EXCEPTION("Bind failed");

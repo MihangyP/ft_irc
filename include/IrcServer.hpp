@@ -9,7 +9,6 @@
 # include <arpa/inet.h>
 # include <poll.h>
 # include <unistd.h>
-# include <fcntl.h>
 # include "IrcClient.hpp"
 # include "Command.hpp"
 # include "StringHelper.hpp"
